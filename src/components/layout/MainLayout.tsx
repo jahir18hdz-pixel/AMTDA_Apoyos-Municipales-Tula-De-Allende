@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { FiMenu } from "react-icons/fi";
 
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -11,14 +10,15 @@ export default function MainLayout() {
 
   return (
     <div
-      className="min-h-screen bg-slate-100"
+      className="min-h-dvh bg-slate-100"
       style={
         {
           "--sidebar-w": collapsed ? "92px" : "320px",
         } as React.CSSProperties
       }
     >
-      <div className="hidden min-h-screen lg:grid lg:grid-cols-[var(--sidebar-w)_1fr]">
+      {/* DESKTOP */}
+      <div className="hidden min-h-dvh lg:grid lg:grid-cols-[var(--sidebar-w)_1fr]">
         <Sidebar
           collapsed={collapsed}
           onBackgroundToggle={() => setCollapsed((value) => !value)}
@@ -29,48 +29,37 @@ export default function MainLayout() {
             <Header onMenuClick={() => setCollapsed((value) => !value)} />
           </div>
 
-          <main className="flex-1 p-4 lg:p-6">
+          <main className="min-w-0 flex-1 overflow-x-hidden p-4 lg:p-6">
             <Outlet />
           </main>
         </div>
       </div>
 
-      <div className="min-h-screen lg:hidden">
-        <div className="fixed left-0 top-0 z-50 h-screen w-[320px] transition-transform duration-300">
-          {mobileOpen && <Sidebar onNavigate={() => setMobileOpen(false)} />}
-        </div>
-
+      {/* MOBILE */}
+      <div className="min-h-dvh lg:hidden">
         {mobileOpen && (
           <button
             type="button"
             aria-label="Cerrar menú"
-            className="fixed inset-0 z-40 bg-black/40"
+            className="fixed inset-0 z-40 bg-black/45"
             onClick={() => setMobileOpen(false)}
           />
         )}
 
-        <div className="flex min-h-screen flex-col">
-          <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white px-4">
-            <button
-              type="button"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border bg-white"
-              onClick={() => setMobileOpen(true)}
-            >
-              <FiMenu />
-            </button>
+        <aside
+          className={`fixed left-0 top-0 z-50 h-dvh w-[min(86vw,320px)] transition-transform duration-300 ${
+            mobileOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <Sidebar onNavigate={() => setMobileOpen(false)} />
+        </aside>
 
-            <div className="text-right">
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                Presi 2.0
-              </p>
+        <div className="flex min-h-dvh min-w-0 flex-col">
+          <div className="sticky top-0 z-30 p-3 pb-0">
+            <Header onMenuClick={() => setMobileOpen(true)} />
+          </div>
 
-              <h2 className="text-sm font-semibold text-slate-900">
-                Apoyos Municipales
-              </h2>
-            </div>
-          </header>
-
-          <main className="flex-1 p-4">
+          <main className="min-w-0 flex-1 overflow-x-hidden p-3 sm:p-4">
             <Outlet />
           </main>
         </div>

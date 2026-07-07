@@ -1,0 +1,822 @@
+/* ============================================
+   VARIABLES
+============================================ */
+:root {
+  --vino: #4b0016;
+  --vino-l: #6b0020;
+  --vino-f: #f8f0f2;
+  --gold: #b68a2a;
+  --gold-f: #fdf8ee;
+  --surface: #f9f7f5;
+  --border: rgba(75, 0, 22, 0.1);
+  --border-2: rgba(75, 0, 22, 0.2);
+  --text: #1a0008;
+  --muted: #9e7a84;
+}
+
+/* ============================================
+   CONTENEDOR PRINCIPAL
+============================================ */
+.page {
+  height: calc(100dvh - 64px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 22px;
+  overflow: hidden;
+}
+
+/* ============================================
+   HEADER
+============================================ */
+.header {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.header h1 {
+  margin: 0;
+  color: var(--text);
+  font-family: "Playfair Display", serif;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.header p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+/* ============================================
+   TOOLBAR
+============================================ */
+.toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ============================================
+   CONTENIDO CON SCROLL
+============================================ */
+.scrollableContent {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--vino) transparent;
+}
+
+.scrollableContent::-webkit-scrollbar {
+  width: 3px;
+}
+
+.scrollableContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollableContent::-webkit-scrollbar-thumb {
+  background: var(--vino);
+  border-radius: 999px;
+}
+
+.scrollableContent::-webkit-scrollbar-thumb:hover {
+  background: var(--vino-l);
+}
+
+/* ============================================
+   BOTONES
+============================================ */
+.primaryButton {
+  height: 40px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--vino), #6a0823);
+  color: white;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 10px 22px rgba(75, 0, 22, 0.18);
+}
+
+.primaryButton:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #5d001c, #7c0b2d);
+}
+
+.primaryButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.toggleButton {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-2);
+  background: white;
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.toggleButton:hover {
+  background: var(--surface);
+  border-color: var(--muted);
+}
+
+/* ============================================
+   BUSCADOR
+============================================ */
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: white;
+  border-radius: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--border-2);
+  min-width: 340px;
+  flex: 1;
+  max-width: 500px;
+  transition: all 0.2s ease;
+}
+
+.searchBox:focus-within {
+  border-color: var(--vino);
+  box-shadow: 0 0 0 3px rgba(75, 0, 22, 0.06);
+}
+
+.searchBox svg {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.searchBox input {
+  border: none;
+  outline: none;
+  width: 100%;
+  background: transparent;
+  font-size: 13px;
+}
+
+.searchBox input::placeholder {
+  color: var(--muted);
+}
+
+/* ============================================
+   GRUPOS
+============================================ */
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 8px;
+}
+
+/* ============================================
+   CARD DE GRUPO
+============================================ */
+.groupCard {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 28px rgba(75, 0, 22, 0.06);
+}
+
+.groupCard:hover {
+  box-shadow: 0 16px 34px rgba(75, 0, 22, 0.08);
+}
+
+/* ============================================
+   HEADER DEL GRUPO
+============================================ */
+.groupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--vino-f);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+}
+
+.groupHeader h2 {
+  margin: 0;
+  color: var(--vino);
+  font-family: "Playfair Display", serif;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.groupHeader span {
+  font-size: 11.5px;
+  color: var(--vino);
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+/* ============================================
+   TABLA
+============================================ */
+.tableWrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--vino) transparent;
+}
+
+.tableWrap::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+.tableWrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tableWrap::-webkit-scrollbar-thumb {
+  background: var(--vino);
+  border-radius: 999px;
+}
+
+.tableWrap::-webkit-scrollbar-thumb:hover {
+  background: var(--vino-l);
+}
+
+.table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table thead {
+  background: var(--vino-f);
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  color: var(--muted);
+  background: var(--vino-f);
+  text-align: left;
+  padding: 11px 14px;
+  font-weight: 600;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border-2);
+}
+
+.table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  font-size: 13px;
+  color: var(--text);
+  background: #fff;
+  white-space: nowrap;
+}
+
+.table tbody tr:hover td {
+  background: var(--vino-f);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ============================================
+   CÓDIGO DEL PERMISO
+============================================ */
+.code {
+  display: inline-flex;
+  background: var(--vino-f);
+  color: var(--vino);
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: "Courier New", monospace;
+  letter-spacing: 0.3px;
+}
+
+/* ============================================
+   NOMBRE CON ICONO
+============================================ */
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--vino-f);
+  color: var(--vino);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+tr:hover .icon {
+  background: rgba(75, 0, 22, 0.12);
+}
+
+/* ============================================
+   DESCRIPCIÓN
+============================================ */
+.description {
+  color: #444;
+  line-height: 1.4;
+  display: block;
+  max-width: 280px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.noDescription {
+  color: #c3aab2;
+  font-style: italic;
+}
+
+/* ============================================
+   ESTATUS
+============================================ */
+.active,
+.inactive {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.active {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.active::before {
+  content: "●";
+  font-size: 0.55rem;
+}
+
+.inactive {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.inactive::before {
+  content: "●";
+  font-size: 0.55rem;
+}
+
+/* ============================================
+   ACCIONES
+============================================ */
+.actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.actions button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actions button:hover {
+  transform: translateY(-1px);
+}
+
+.actionEdit {
+  background: var(--gold-f);
+  color: var(--gold);
+}
+
+.actionEdit:hover {
+  border-color: rgba(182, 138, 42, 0.35);
+}
+
+.actionEnable {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.actionEnable:hover {
+  border-color: #a7f3d0;
+}
+
+.actionDisable {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.actionDisable:hover {
+  border-color: #fecaca;
+}
+
+/* ============================================
+   ESTADO VACÍO
+============================================ */
+.empty {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--muted);
+  box-shadow: 0 12px 28px rgba(75, 0, 22, 0.06);
+}
+
+.empty::before {
+  content: "📋";
+  display: block;
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.clearSearch {
+  background: var(--vino-f);
+  border: none;
+  color: var(--vino);
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  padding: 8px 14px;
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.clearSearch:hover {
+  background: #eedce2;
+}
+
+/* ============================================
+   MODAL
+============================================ */
+.modalBg {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 0, 8, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 20px;
+  overflow: hidden;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  width: min(620px, 95vw);
+  max-height: 90vh;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(26, 0, 8, 0.25);
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modalHead {
+  flex: 0 0 auto;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: linear-gradient(135deg, var(--vino), #6a0823);
+}
+
+.modalHead h2 {
+  margin: 0;
+  color: #fff;
+  font-family: "Playfair Display", serif;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.modalHead p {
+  margin: 3px 0 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+}
+
+.modalHead button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalHead button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modalBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--vino) transparent;
+}
+
+.modalBody::-webkit-scrollbar {
+  width: 3px;
+}
+
+.modalBody::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modalBody::-webkit-scrollbar-thumb {
+  background: var(--vino);
+  border-radius: 999px;
+}
+
+.modalBody label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-weight: 500;
+  font-size: 12px;
+  color: #5c3340;
+}
+
+.modalBody span {
+  color: var(--vino);
+  font-weight: 700;
+}
+
+.modalBody small {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.modalBody input,
+.modalBody textarea {
+  border: 1px solid var(--border-2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  resize: vertical;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.modalBody input:focus,
+.modalBody textarea:focus {
+  border-color: var(--vino);
+  box-shadow: 0 0 0 3px rgba(75, 0, 22, 0.06);
+}
+
+.modalBody textarea {
+  min-height: 84px;
+}
+
+.modalFoot {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.cancelButton {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-2);
+  background: #fff;
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background: var(--surface);
+  border-color: var(--muted);
+}
+
+/* ============================================
+   SPINNER
+============================================ */
+.spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--vino);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+============================================ */
+@media (max-width: 900px) {
+  .page {
+    height: calc(100dvh - 56px);
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 9px;
+  }
+
+  .header h1 {
+    font-size: 20px;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 9px;
+  }
+
+  .searchBox {
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  .toggleButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .groupHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .table {
+    min-width: 760px;
+  }
+
+  .description {
+    max-width: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    height: calc(100dvh - 56px);
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .header h1 {
+    font-size: 19px;
+  }
+
+  .header p {
+    font-size: 12px;
+  }
+
+  .primaryButton,
+  .toggleButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .table {
+    min-width: 680px;
+  }
+
+  .description {
+    max-width: 130px;
+  }
+
+  .code {
+    font-size: 10px;
+  }
+
+  .icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .actions button {
+    width: 30px;
+    height: 30px;
+  }
+
+  .modalBg {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: 95vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .modalHead,
+  .modalBody,
+  .modalFoot {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .modalFoot {
+    flex-direction: column;
+  }
+
+  .modalFoot button {
+    width: 100%;
+  }
+}

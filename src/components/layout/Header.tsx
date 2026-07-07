@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { FiCalendar, FiClock } from "react-icons/fi";
+import { FiCalendar, FiClock, FiMenu } from "react-icons/fi";
 
 import styles from "./Header.module.css";
 
@@ -19,6 +19,7 @@ function titleFromPath(pathname: string) {
     "/administracion/roles": "Roles",
     "/administracion/permisos": "Permisos",
   };
+
   return map[pathname] ?? "Inicio";
 }
 
@@ -38,7 +39,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
       now.toLocaleTimeString("es-MX", {
         hour: "2-digit",
         minute: "2-digit",
-        second: "2-digit",
       }),
     [now]
   );
@@ -54,20 +54,29 @@ export default function Header({ onMenuClick }: HeaderProps) {
   );
 
   return (
-    <header className={styles.topBar} onDoubleClick={onMenuClick}>
+    <header className={styles.topBar}>
+      <button
+        onClick={onMenuClick}
+        className={styles.menuButton}
+        aria-label="Abrir menú"
+      >
+        <FiMenu />
+      </button>
+
       <div className={styles.left}>
-        <p className={styles.topEyebrow}>Apoyos Municipales</p>
         <h1 className={styles.topTitle}>{title}</h1>
       </div>
 
       <div className={styles.datetime}>
         <div className={styles.dtChip}>
-          <FiClock aria-hidden="true" />
+          <FiClock />
           <span>{timeStr}</span>
         </div>
-        <div className={styles.dtDivider} aria-hidden="true" />
+
+        <div className={styles.dtDivider} />
+
         <div className={styles.dtChip}>
-          <FiCalendar aria-hidden="true" />
+          <FiCalendar />
           <span>{dateStr}</span>
         </div>
       </div>

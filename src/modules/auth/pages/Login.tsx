@@ -6,6 +6,12 @@ import styles from "../styles/Login.module.css";
 import LogoPresi from "@/assets/images/logoRGB.png";
 import Icono from "@/assets/images/iconoatlantevino.png";
 
+import {
+  login,
+  recuperarPassword,
+  resetPassword,
+} from "../../../services/authService";
+
 type Mode = "login" | "forgot";
 type ForgotStep = "request" | "validate" | "change";
 
@@ -29,30 +35,29 @@ export default function Login() {
 
   const isForgot = mode === "forgot";
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    window.setTimeout(() => {
-      const mockUser = {
-        id: "user.admin",
-        name: "Administrador",
-        email,
-        roleId: "role.admin",
-        roleName: "Administrador",
-        permissions: [
-          "dashboard.view",
-          "apoyos.create",
-          "apoyos.history",
-          "comunidades.view",
-          "fondos.view",
-        ],
-      };
+    try {
+      setIsLoading(true);
 
-      localStorage.setItem("presi2_auth", JSON.stringify(mockUser));
-      setIsLoading(false);
+      const response = await login({
+        correo: email,
+        password,
+      });
+
+      localStorage.setItem("presi2_token", response.token);
+
+      if (response.usuario) {
+        localStorage.setItem("presi2_auth", JSON.stringify(response.usuario));
+      }
+
       navigate("/dashboard", { replace: true });
-    }, 600);
+    } catch {
+      alert("Correo o contraseña incorrectos.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleForgot = () => {
@@ -72,9 +77,22 @@ export default function Login() {
     setConfirmNewPassword("");
   };
 
-  const handleSendReset = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSendReset = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setForgotStep("validate");
+
+    try {
+      setIsLoading(true);
+
+      await recuperarPassword({
+        correo: email,
+      });
+
+      setForgotStep("validate");
+    } catch {
+      alert("No se pudo enviar el código de recuperación.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleValidateCode = (e: React.FormEvent<HTMLFormElement>) => {
@@ -82,9 +100,29 @@ export default function Login() {
     setForgotStep("change");
   };
 
-  const handleChangePassword = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleChangePassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    handleBackToLogin();
+
+    if (newPassword !== confirmNewPassword) {
+      alert("Las contraseñas no coinciden.");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      await resetPassword({
+        token: code,
+        nuevoPassword: newPassword,
+      });
+
+      alert("Contraseña actualizada correctamente.");
+      handleBackToLogin();
+    } catch {
+      alert("No se pudo cambiar la contraseña.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -93,7 +131,11 @@ export default function Login() {
     >
       <div className={styles.leftPanel}>
         <div className={styles.logoCard}>
-          <img src={LogoPresi} alt="Tula de Allende" />
+          <img
+            src={LogoPresi}
+            alt="Tula de Allende"
+            className={styles.logoImage}
+          />
         </div>
       </div>
 
@@ -110,9 +152,9 @@ export default function Login() {
           <p className={styles.description}>
             {isForgot
               ? forgotStep === "request"
-                ? "Escribe tu correo para simular el envío de un código de recuperación."
+                ? "Escribe tu correo para recibir un código de recuperación."
                 : forgotStep === "validate"
-                ? "Escribe el código de recuperación."
+                ? "Escribe el código que recibiste en tu correo."
                 : "Ingresa tu nueva contraseña."
               : "Plataforma administrativa para el registro y seguimiento de apoyos municipales."}
           </p>
@@ -145,6 +187,7 @@ export default function Login() {
                   type="button"
                   className={styles.togglePassword}
                   onClick={() => setShowPassword((prev) => !prev)}
+                  disabled={isLoading}
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
@@ -155,6 +198,7 @@ export default function Login() {
                   type="button"
                   className={styles.forgotPass}
                   onClick={handleForgot}
+                  disabled={isLoading}
                 >
                   Olvidé contraseña
                 </button>
@@ -177,18 +221,24 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
                 <span className={styles.icon}>@</span>
               </div>
 
-              <button type="submit" className={styles.loginButton}>
-                Enviar código
+              <button
+                type="submit"
+                className={styles.loginButton}
+                disabled={isLoading}
+              >
+                {isLoading ? "Enviando..." : "Enviar código"}
               </button>
 
               <button
                 type="button"
                 className={styles.backLink}
                 onClick={handleBackToLogin}
+                disabled={isLoading}
               >
                 Volver a iniciar sesión
               </button>
@@ -202,11 +252,16 @@ export default function Login() {
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
 
-              <button type="submit" className={styles.loginButton}>
-                Validar código
+              <button
+                type="submit"
+                className={styles.loginButton}
+                disabled={isLoading}
+              >
+                Continuar
               </button>
 
               <div className={styles.actionsContainer}>
@@ -214,6 +269,7 @@ export default function Login() {
                   type="button"
                   className={styles.backLink}
                   onClick={() => setForgotStep("request")}
+                  disabled={isLoading}
                 >
                   Reenviar código
                 </button>
@@ -222,6 +278,7 @@ export default function Login() {
                   type="button"
                   className={styles.backLink}
                   onClick={handleBackToLogin}
+                  disabled={isLoading}
                 >
                   Volver
                 </button>
@@ -236,12 +293,14 @@ export default function Login() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
 
                 <button
                   type="button"
                   className={styles.togglePassword}
                   onClick={() => setShowNewPassword((prev) => !prev)}
+                  disabled={isLoading}
                 >
                   {showNewPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
@@ -254,17 +313,23 @@ export default function Login() {
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
 
-              <button type="submit" className={styles.loginButton}>
-                Cambiar contraseña
+              <button
+                type="submit"
+                className={styles.loginButton}
+                disabled={isLoading}
+              >
+                {isLoading ? "Actualizando..." : "Cambiar contraseña"}
               </button>
 
               <button
                 type="button"
                 className={styles.backLink}
                 onClick={handleBackToLogin}
+                disabled={isLoading}
               >
                 Volver a iniciar sesión
               </button>
