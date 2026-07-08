@@ -31,29 +31,38 @@ type SidebarProps = {
   onBackgroundToggle?: () => void;
 };
 
-function getMockUser() {
+function getAuthUser() {
   const rawUser = localStorage.getItem("presi2_auth");
 
   if (!rawUser) {
     return {
-      email: "admin@presidencia.gob.mx",
-      permissions: [
-        "dashboard.view",
-        "apoyos.create",
-        "apoyos.history",
-        "comunidades.view",
-        "fondos.view",
-        "usuarios.view",
-        "roles.view",
-        "permisos.view",
-      ],
+      email: "",
+      permissions: [],
     };
   }
 
-  return JSON.parse(rawUser) as {
-    email: string;
-    permissions: string[];
-  };
+  try {
+    const user = JSON.parse(rawUser) as {
+      correo?: string;
+      email?: string;
+      permisos?: ({ permiso: string } | string)[];
+      permissions?: ({ permiso: string } | string)[];
+    };
+
+    const permisosRaw = user.permisos ?? user.permissions ?? [];
+
+    return {
+      email: user.correo ?? user.email ?? "",
+      permissions: permisosRaw.map((permiso) =>
+        typeof permiso === "string" ? permiso : permiso.permiso,
+      ),
+    };
+  } catch {
+    return {
+      email: "",
+      permissions: [],
+    };
+  }
 }
 
 function isInteractiveTarget(target: EventTarget | null) {
@@ -69,35 +78,21 @@ export default function Sidebar({
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { email, permissions } = getMockUser();
+  const { email, permissions } = getAuthUser();
 
-  const allowedModules = useMemo(
-  () =>
-    new Set([
-      ...permissions,
-      "dashboard.view",
-      "apoyos.create",
-      "apoyos.history",
-      "comunidades.view",
-      "fondos.view",
-      "usuarios.view",
-      "roles.view",
-      "permisos.view",
-    ]),
-  [permissions]
-);
+  const allowedModules = useMemo(() => new Set(permissions), [permissions]);
 
   const [apoyosOpen, setApoyosOpen] = useState(
-    location.pathname.startsWith("/apoyos/")
+    location.pathname.startsWith("/apoyos/"),
   );
 
   const [catalogosOpen, setCatalogosOpen] = useState(
     location.pathname.startsWith("/comunidades") ||
-      location.pathname.startsWith("/fondos")
+      location.pathname.startsWith("/fondos"),
   );
 
   const [adminOpen, setAdminOpen] = useState(
-    location.pathname.startsWith("/administracion")
+    location.pathname.startsWith("/administracion"),
   );
 
   const menu: MenuItem[] = useMemo(
@@ -165,12 +160,11 @@ export default function Sidebar({
         ],
       },
     ],
-    []
+    [],
   );
 
   const filteredMenu = useMemo(() => {
-    const canSee = (id: string) =>
-      allowedModules.has(id) || id.endsWith(".group");
+    const canSee = (id: string) => allowedModules.has(id);
 
     return menu
       .map((item) => {
@@ -192,6 +186,7 @@ export default function Sidebar({
 
   const handleLogout = () => {
     localStorage.removeItem("presi2_auth");
+    localStorage.removeItem("presi2_token");
     onNavigate?.();
     navigate("/login", { replace: true });
   };
@@ -340,15 +335,21 @@ export default function Sidebar({
               >
                 <span className={styles.icon}>{item.icon}</span>
 
-                {!collapsed && <span className={styles.label}>{item.label}</span>}
+                {!collapsed && (
+                  <span className={styles.label}>{item.label}</span>
+                )}
               </NavLink>
-            )
+            ),
           )}
         </nav>
       </div>
 
       <div className={styles.bottom}>
-        <button type="button" className={styles.bottomBtn} onClick={handleLogout}>
+        <button
+          type="button"
+          className={styles.bottomBtn}
+          onClick={handleLogout}
+        >
           <span className={styles.icon}>
             <FiLogOut />
           </span>

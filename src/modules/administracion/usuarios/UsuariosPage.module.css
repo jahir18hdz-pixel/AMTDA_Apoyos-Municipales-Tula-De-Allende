@@ -29,7 +29,8 @@
   gap: 16px;
 }
 
-.kicker {
+.kicker,
+.summaryGrid {
   display: none;
 }
 
@@ -66,10 +67,6 @@
 .primaryButton:hover {
   transform: translateY(-1px);
   background: linear-gradient(135deg, #5d001c, #7c0b2d);
-}
-
-.summaryGrid {
-  display: none;
 }
 
 .panel {
@@ -130,7 +127,7 @@
   gap: 8px;
 }
 
-.tabs button {
+.toggleButton {
   height: 40px;
   padding: 0 16px;
   border-radius: 10px;
@@ -143,15 +140,14 @@
   white-space: nowrap;
 }
 
-.tabs button:hover {
+.toggleButton:hover {
   background: var(--surface);
   border-color: var(--muted);
+  transform: translateY(-1px);
 }
 
-.tabs .activeTab {
-  background: linear-gradient(135deg, var(--vino), #6a0823);
-  color: white;
-  border-color: transparent;
+.toggleButton:active {
+  transform: translateY(0);
 }
 
 .tableWrapper {
@@ -197,7 +193,7 @@
   z-index: 3;
   color: var(--muted);
   background: var(--vino-f);
-  text-align: left;
+  text-align: center;
   padding: 11px 14px;
   font-weight: 600;
   font-size: 10.5px;
@@ -211,6 +207,7 @@
   padding: 11px 14px;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
+  text-align: center;
   font-size: 13px;
   color: var(--text);
   background: white;
@@ -221,40 +218,15 @@
   background: var(--vino-f);
 }
 
-.userCell {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: var(--vino-f);
-  color: var(--vino);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  flex-shrink: 0;
-}
-
-.userCell strong {
-  display: block;
+.table td strong {
   color: var(--text);
   font-weight: 700;
 }
 
-.userCell span {
-  display: block;
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 11px;
-}
-
 .roleBadge {
   display: inline-flex;
+  justify-content: center;
+  align-items: center;
   background: var(--vino-f);
   color: var(--vino);
   padding: 4px 10px;
@@ -268,13 +240,16 @@
   margin-top: 4px;
   color: var(--muted);
   font-size: 11.5px;
+  text-align: center;
 }
 
 .statusActive,
-.statusInactive {
+.statusInactive,
+.statusVerified,
+.statusPending {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 11.5px;
@@ -291,16 +266,28 @@
   background: #fef3c7;
 }
 
+.statusVerified {
+  color: #15803d;
+  background: #e8f8ee;
+}
+
+.statusPending {
+  color: #b45309;
+  background: #fff7e6;
+}
+
 .statusActive::before,
 .statusInactive::before {
   content: "●";
+  margin-right: 4px;
   font-size: 0.55rem;
 }
 
 .actions {
   display: flex;
   gap: 6px;
-  justify-content: flex-end;
+  justify-content: center;
+  align-items: center;
 }
 
 .actions button {
@@ -335,20 +322,17 @@
 }
 
 .empty {
+  flex: 1;
   background: white;
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 40px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   color: var(--muted);
   box-shadow: 0 12px 28px rgba(75, 0, 22, 0.06);
-}
-
-.empty::before {
-  content: "👤";
-  display: block;
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
 }
 
 .pagination {
@@ -516,8 +500,8 @@
     width: 100%;
   }
 
-  .tabs button {
-    flex: 1;
+  .toggleButton {
+    width: 100%;
   }
 
   .primaryButton {
@@ -526,7 +510,7 @@
   }
 
   .table {
-    min-width: 760px;
+    min-width: 860px;
   }
 
   .pagination {
@@ -550,12 +534,7 @@
   }
 
   .table {
-    min-width: 680px;
-  }
-
-  .avatar {
-    width: 30px;
-    height: 30px;
+    min-width: 820px;
   }
 
   .actions button {

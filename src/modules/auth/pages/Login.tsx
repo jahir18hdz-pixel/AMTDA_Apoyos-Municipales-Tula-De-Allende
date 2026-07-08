@@ -48,9 +48,16 @@ export default function Login() {
 
       localStorage.setItem("presi2_token", response.token);
 
-      if (response.usuario) {
-        localStorage.setItem("presi2_auth", JSON.stringify(response.usuario));
-      }
+      localStorage.setItem(
+        "presi2_auth",
+        JSON.stringify({
+          nombre: response.nombre,
+          correo: response.correo,
+          rol: response.rol,
+          subRol: response.subRol,
+          permisos: response.permisos ?? [],
+        }),
+      );
 
       navigate("/dashboard", { replace: true });
     } catch {
@@ -154,8 +161,8 @@ export default function Login() {
               ? forgotStep === "request"
                 ? "Escribe tu correo para recibir un código de recuperación."
                 : forgotStep === "validate"
-                ? "Escribe el código que recibiste en tu correo."
-                : "Ingresa tu nueva contraseña."
+                  ? "Escribe el código que recibiste en tu correo."
+                  : "Ingresa tu nueva contraseña."
               : "Plataforma administrativa para el registro y seguimiento de apoyos municipales."}
           </p>
 

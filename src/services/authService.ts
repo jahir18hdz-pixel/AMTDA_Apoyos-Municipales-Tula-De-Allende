@@ -16,14 +16,11 @@ export type ResetPasswordDto = {
 
 export type LoginResponse = {
   token: string;
-  usuario?: {
-    id: string;
-    nombre: string;
-    correo: string;
-    rolId?: string;
-    rolNombre?: string;
-    permisos?: string[];
-  };
+  nombre: string;
+  correo: string;
+  rol: string;
+  subRol: string;
+  permisos: string[];
 };
 
 export async function login(dto: LoginDto) {
@@ -44,6 +41,20 @@ export async function resetPassword(dto: ResetPasswordDto) {
   const response = await api.post<{ mensaje: string }>(
     "/auth/reset-password",
     dto
+  );
+
+  return response.data;
+}
+
+export async function verificarCorreo(token: string) {
+  const response = await api.post(
+    "/auth/activar-cuenta",
+    null,
+    {
+      params: {
+        token,
+      },
+    }
   );
 
   return response.data;

@@ -3,17 +3,15 @@ import {
   FiEdit2,
   FiPlus,
   FiSearch,
-  FiShield,
   FiToggleLeft,
   FiToggleRight,
-  FiUser,
   FiUserCheck,
 } from "react-icons/fi";
 
 import styles from "./UsuariosPage.module.css";
 
 import type { Usuario } from "../../../types/usuarios.types";
-import type { Rol } from "@/types/rol.types";
+import type { Rol } from "../../../types/rol.types";
 
 import { rolService } from "../../../services/rolService";
 import {
@@ -97,7 +95,7 @@ export default function UsuariosPage() {
       if (!rolId) return null;
       return roles.find((rol) => rol.id === rolId)?.nombre ?? null;
     },
-    [roles]
+    [roles],
   );
 
   const obtenerRolId = useCallback(
@@ -105,12 +103,12 @@ export default function UsuariosPage() {
       if (!nombreRol) return "";
 
       const rol = roles.find(
-        (item) => item.nombre.toLowerCase() === nombreRol.toLowerCase()
+        (item) => item.nombre.toLowerCase() === nombreRol.toLowerCase(),
       );
 
       return rol?.id ?? "";
     },
-    [roles]
+    [roles],
   );
 
   const obtenerRolUsuario = useCallback(
@@ -123,15 +121,12 @@ export default function UsuariosPage() {
         "Sin rol"
       );
     },
-    [obtenerNombreRol]
+    [obtenerNombreRol],
   );
 
   const obtenerSubRolUsuario = useCallback((usuario: Usuario) => {
     return (
-      usuario.subRolNombre ||
-      usuario.nombreSubRol ||
-      usuario.subRol ||
-      null
+      usuario.subRolNombre || usuario.nombreSubRol || usuario.subRol || null
     );
   }, []);
 
@@ -153,7 +148,9 @@ export default function UsuariosPage() {
     });
   }, [usuarios, busqueda, obtenerRolUsuario, obtenerSubRolUsuario]);
 
-  async function handleRegistrarUsuario(event: React.FormEvent<HTMLFormElement>) {
+  async function handleRegistrarUsuario(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
@@ -175,21 +172,23 @@ export default function UsuariosPage() {
       });
 
       setModalRegistro(false);
-      setVista("activos");
+      setVista("inactivos");
       setPageNumber(1);
+      setBusqueda("");
 
-      const response = await obtenerUsuariosActivos(1, 100);
+      const response = await obtenerUsuariosInactivos(1, 100);
 
       const usuarioCreado = response.items.find(
-        (usuario) => usuario.correo.toLowerCase() === correo.toLowerCase()
+        (usuario) => usuario.correo.toLowerCase() === correo.toLowerCase(),
       );
 
-      await cargarUsuarios();
+      setUsuarios(response.items ?? []);
+      setTotalPages(response.totalPages || 1);
 
       if (usuarioCreado) {
         setUsuarioRol(usuarioCreado);
       } else {
-        alert("Usuario registrado. Ahora puedes asignarle rol desde la tabla.");
+        alert("Usuario registrado. Puedes verlo en la tabla de inactivos.");
       }
     } catch (error) {
       console.error("Error al registrar usuario", error);
@@ -203,14 +202,25 @@ export default function UsuariosPage() {
     const confirmar = window.confirm(
       nuevoEstatus
         ? "¿Deseas activar este usuario?"
-        : "¿Deseas desactivar este usuario?"
+        : "¿Deseas desactivar este usuario?",
     );
 
     if (!confirmar) return;
 
     try {
       await cambiarEstatusUsuario(usuario.id, nuevoEstatus);
-      await cargarUsuarios();
+
+      setUsuarios((prevUsuarios) =>
+        prevUsuarios.filter((item) => item.id !== usuario.id),
+      );
+
+      if (nuevoEstatus) {
+        setVista("activos");
+        setPageNumber(1);
+      } else {
+        setVista("inactivos");
+        setPageNumber(1);
+      }
     } catch (error) {
       console.error("Error al cambiar estatus", error);
       alert("No se pudo cambiar el estatus del usuario.");
@@ -267,6 +277,12 @@ export default function UsuariosPage() {
     }
   }
 
+  function handleCambiarVista() {
+    setVista((prev) => (prev === "activos" ? "inactivos" : "activos"));
+    setPageNumber(1);
+    setBusqueda("");
+  }
+
   return (
     <section className={styles.page}>
       <header className={styles.hero}>
@@ -288,9 +304,6 @@ export default function UsuariosPage() {
 
       <section className={styles.summaryGrid}>
         <article className={styles.summaryCard}>
-          <div className={styles.summaryIcon}>
-            <FiUser />
-          </div>
           <div>
             <span>Total mostrado</span>
             <strong>{usuarios.length}</strong>
@@ -298,9 +311,6 @@ export default function UsuariosPage() {
         </article>
 
         <article className={styles.summaryCard}>
-          <div className={styles.summaryIcon}>
-            <FiUserCheck />
-          </div>
           <div>
             <span>Vista actual</span>
             <strong>{vista === "activos" ? "Activos" : "Inactivos"}</strong>
@@ -308,15 +318,12 @@ export default function UsuariosPage() {
         </article>
 
         <article className={styles.summaryCard}>
-          <div className={styles.summaryIcon}>
-            <FiShield />
-          </div>
           <div>
             <span>Con rol</span>
             <strong>
               {
                 usuarios.filter(
-                  (usuario) => obtenerRolUsuario(usuario) !== "Sin rol"
+                  (usuario) => obtenerRolUsuario(usuario) !== "Sin rol",
                 ).length
               }
             </strong>
@@ -338,24 +345,10 @@ export default function UsuariosPage() {
           <div className={styles.tabs}>
             <button
               type="button"
-              className={vista === "activos" ? styles.activeTab : ""}
-              onClick={() => {
-                setVista("activos");
-                setPageNumber(1);
-              }}
+              className={styles.toggleButton}
+              onClick={handleCambiarVista}
             >
-              Activos
-            </button>
-
-            <button
-              type="button"
-              className={vista === "inactivos" ? styles.activeTab : ""}
-              onClick={() => {
-                setVista("inactivos");
-                setPageNumber(1);
-              }}
-            >
-              Inactivos
+              {vista === "activos" ? "Ver inactivos" : "Ver activos"}
             </button>
           </div>
         </div>
@@ -363,7 +356,9 @@ export default function UsuariosPage() {
         {loading ? (
           <p className={styles.empty}>Cargando usuarios...</p>
         ) : usuariosFiltrados.length === 0 ? (
-          <p className={styles.empty}>No se encontraron usuarios.</p>
+          <div className={styles.emptyState}>
+            <p>No se encontraron usuarios.</p>
+          </div>
         ) : (
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
@@ -371,6 +366,7 @@ export default function UsuariosPage() {
                 <tr>
                   <th>Usuario</th>
                   <th>Correo</th>
+                  <th>Correo verificado</th>
                   <th>Rol</th>
                   <th>Estatus</th>
                   <th>Acciones</th>
@@ -385,18 +381,24 @@ export default function UsuariosPage() {
                   return (
                     <tr key={usuario.id}>
                       <td>
-                        <div className={styles.userCell}>
-                          <div className={styles.avatar}>
-                            {usuario.nombre.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <strong>{usuario.nombre}</strong>
-                            <span>ID: {usuario.id.slice(0, 8)}</span>
-                          </div>
-                        </div>
+                        <strong>{usuario.nombre}</strong>
                       </td>
 
                       <td>{usuario.correo}</td>
+                      
+                      <td>
+                        <span
+                          className={
+                            usuario.correoVerificado
+                              ? styles.statusVerified
+                              : styles.statusPending
+                          }
+                        >
+                          {usuario.correoVerificado
+                            ? "Verificado"
+                            : "Pendiente"}
+                        </span>
+                      </td>
 
                       <td>
                         <span className={styles.roleBadge}>{rolUsuario}</span>
@@ -486,7 +488,10 @@ export default function UsuariosPage() {
         <div className={styles.modalOverlay}>
           <form className={styles.modal} onSubmit={handleRegistrarUsuario}>
             <h2>Registrar usuario</h2>
-            <p>Registra el usuario. Después se asignará el rol.</p>
+            <p>
+              El usuario se registrará como inactivo. Después podrás asignarle
+              un rol y activarlo.
+            </p>
 
             <label>
               Nombre

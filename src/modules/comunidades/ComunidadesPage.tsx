@@ -76,24 +76,30 @@ function getPaginationMeta<T>(data: BackendPaginatedResult<T>): PaginationMeta {
   };
 }
 
+type Permiso =
+  | string
+  | {
+      permiso: string;
+    };
+
 function getUserPermissions() {
   const rawUser = localStorage.getItem("presi2_auth");
 
-  if (!rawUser) {
-    return [
-      "comunidades.view",
-      "comunidades.create",
-      "comunidades.edit",
-      "comunidades.status",
-      "comunidades.ine.view",
-      "comunidades.ine.download",
-      "comunidades.export",
-    ];
-  }
+  if (!rawUser) return [];
 
   try {
-    const user = JSON.parse(rawUser) as { permissions?: string[] };
-    return user.permissions ?? [];
+    const user = JSON.parse(rawUser) as {
+      permisos?: Permiso[];
+      permissions?: Permiso[];
+    };
+
+    const permisosRaw = user.permisos ?? user.permissions ?? [];
+
+    return permisosRaw
+      .map((permiso) =>
+        typeof permiso === "string" ? permiso : permiso.permiso
+      )
+      .filter(Boolean);
   } catch {
     return [];
   }

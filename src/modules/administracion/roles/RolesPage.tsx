@@ -17,22 +17,30 @@ const initialForm = {
   descripcion: "",
 };
 
+type Permiso =
+  | string
+  | {
+      permiso: string;
+    };
+
 function getUserPermissions() {
   const rawUser = localStorage.getItem("presi2_auth");
 
-  if (!rawUser) {
-    return [
-      "roles.view",
-      "roles.create",
-      "roles.edit",
-      "roles.status",
-      "roles.permissions",
-    ];
-  }
+  if (!rawUser) return [];
 
   try {
-    const user = JSON.parse(rawUser) as { permissions?: string[] };
-    return user.permissions ?? [];
+    const user = JSON.parse(rawUser) as {
+      permisos?: Permiso[];
+      permissions?: Permiso[];
+    };
+
+    const permisosRaw = user.permisos ?? user.permissions ?? [];
+
+    return permisosRaw
+      .map((permiso) =>
+        typeof permiso === "string" ? permiso : permiso.permiso
+      )
+      .filter(Boolean);
   } catch {
     return [];
   }
