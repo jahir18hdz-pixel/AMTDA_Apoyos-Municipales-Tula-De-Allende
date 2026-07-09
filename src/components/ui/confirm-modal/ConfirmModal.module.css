@@ -1,0 +1,204 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  background: rgba(26, 0, 8, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.modal {
+  width: min(420px, 95vw);
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(26, 0, 8, 0.25);
+  overflow: hidden;
+  animation: modalPop 0.22s ease;
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.iconBox {
+  height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconBox svg {
+  width: 32px;
+  height: 32px;
+}
+
+.iconBox.danger {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.iconBox.warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.iconBox.success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.iconBox.default {
+  background: var(--vino-f);
+  color: var(--vino);
+}
+
+.content {
+  position: relative;
+  padding: 20px 24px 18px;
+  text-align: center;
+}
+
+.content h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.content p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover:not(:disabled) {
+  background: var(--vino-f);
+  color: var(--vino);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px 20px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.actions button {
+  height: 42px;
+  min-width: 120px;
+  padding: 0 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actions button:first-child {
+  border: 1px solid var(--border-2);
+  background: white;
+  color: var(--text);
+}
+
+.actions button:first-child:hover:not(:disabled) {
+  background: var(--vino-f);
+  border-color: var(--vino);
+  color: var(--vino);
+  transform: translateY(-1px);
+}
+
+.confirmButton {
+  border: none;
+  color: white;
+}
+
+.confirmButton.default,
+.confirmButton.warning {
+  background: linear-gradient(135deg, var(--vino), #6a0823);
+  box-shadow: 0 10px 22px rgba(75, 0, 22, 0.18);
+}
+
+.confirmButton.danger {
+  background: linear-gradient(135deg, #b91c1c, #dc2626);
+  box-shadow: 0 10px 22px rgba(220, 38, 38, 0.18);
+}
+
+.confirmButton.success {
+  background: linear-gradient(135deg, #047857, #059669);
+  box-shadow: 0 10px 22px rgba(5, 150, 105, 0.18);
+}
+
+.confirmButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.actions button:disabled,
+.closeButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 480px) {
+  .overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal {
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    animation: modalSlideUp 0.24s ease;
+  }
+
+  @keyframes modalSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+    padding: 14px 20px 20px;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}

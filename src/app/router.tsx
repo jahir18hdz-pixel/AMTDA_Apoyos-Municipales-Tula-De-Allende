@@ -1,12 +1,9 @@
 import { createBrowserRouter } from "react-router-dom";
-
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
-
 import Splash from "@/modules/auth/pages/Splash";
 import Login from "@/modules/auth/pages/Login";
 import ActivarCuentaPage from "@/modules/verificarCorreo/ActivarCuentaPage";
-
 import DashboardPage from "@/modules/dashboard/DashboardPage";
 import RegistroApoyoPage from "@/modules/apoyos/registro/RegistroApoyoPage";
 import HistorialApoyosPage from "@/modules/apoyos/historial/HistorialApoyosPage";

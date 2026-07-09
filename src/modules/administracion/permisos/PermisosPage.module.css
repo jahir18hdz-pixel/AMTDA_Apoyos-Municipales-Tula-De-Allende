@@ -1,6 +1,3 @@
-/* ============================================
-   VARIABLES
-============================================ */
 :root {
   --vino: #4b0016;
   --vino-l: #6b0020;
@@ -14,147 +11,44 @@
   --muted: #9e7a84;
 }
 
-/* ============================================
-   CONTENEDOR PRINCIPAL
-============================================ */
 .page {
   height: calc(100dvh - 64px);
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
   padding: 18px 22px;
   overflow: hidden;
 }
 
-/* ============================================
-   HEADER
-============================================ */
-.header {
-  flex: 0 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.header h1 {
-  margin: 0;
-  color: var(--text);
-  font-family: "Playfair Display", serif;
-  font-size: 22px;
-  font-weight: 600;
-}
-
-.header p {
-  margin: 3px 0 0;
-  color: var(--muted);
-  font-size: 12.5px;
-}
-
-/* ============================================
-   TOOLBAR
-============================================ */
-.toolbar {
-  flex: 0 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-/* ============================================
-   CONTENIDO CON SCROLL
-============================================ */
-.scrollableContent {
+.panel {
   flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 4px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--vino) transparent;
-}
-
-.scrollableContent::-webkit-scrollbar {
-  width: 3px;
-}
-
-.scrollableContent::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scrollableContent::-webkit-scrollbar-thumb {
-  background: var(--vino);
-  border-radius: 999px;
-}
-
-.scrollableContent::-webkit-scrollbar-thumb:hover {
-  background: var(--vino-l);
-}
-
-/* ============================================
-   BOTONES
-============================================ */
-.primaryButton {
-  height: 40px;
-  padding: 0 16px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--vino), #6a0823);
-  color: white;
   display: flex;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.toolbar {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
   align-items: center;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 10px 22px rgba(75, 0, 22, 0.18);
 }
 
-.primaryButton:hover {
-  transform: translateY(-1px);
-  background: linear-gradient(135deg, #5d001c, #7c0b2d);
-}
-
-.primaryButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.toggleButton {
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 10px;
-  border: 1px solid var(--border-2);
-  background: white;
-  color: var(--text);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.toggleButton:hover {
-  background: var(--surface);
-  border-color: var(--muted);
-}
-
-/* ============================================
-   BUSCADOR
-============================================ */
 .searchBox {
+  width: 100%;
+  max-width: 520px;
+  height: 40px;
   display: flex;
   align-items: center;
   gap: 0.7rem;
   background: white;
   border-radius: 10px;
-  padding: 9px 12px;
+  padding: 0 12px;
   border: 1px solid var(--border-2);
-  min-width: 340px;
-  flex: 1;
-  max-width: 500px;
+  color: var(--muted);
   transition: all 0.2s ease;
 }
 
@@ -169,82 +63,83 @@
 }
 
 .searchBox input {
+  width: 100%;
   border: none;
   outline: none;
-  width: 100%;
   background: transparent;
   font-size: 13px;
+  color: var(--text);
 }
 
 .searchBox input::placeholder {
   color: var(--muted);
 }
 
-/* ============================================
-   GRUPOS
-============================================ */
-.groups {
+.toolbarActions {
   display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding-bottom: 8px;
-}
-
-/* ============================================
-   CARD DE GRUPO
-============================================ */
-.groupCard {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 12px 28px rgba(75, 0, 22, 0.06);
-}
-
-.groupCard:hover {
-  box-shadow: 0 16px 34px rgba(75, 0, 22, 0.08);
-}
-
-/* ============================================
-   HEADER DEL GRUPO
-============================================ */
-.groupHeader {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: var(--vino-f);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 16px;
+  gap: 10px;
 }
 
-.groupHeader h2 {
-  margin: 0;
-  color: var(--vino);
-  font-family: "Playfair Display", serif;
-  font-size: 17px;
+.primaryButton,
+.secondaryButton {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 13px;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.groupHeader span {
-  font-size: 11.5px;
+.primaryButton {
+  border: none;
+  background: linear-gradient(135deg, var(--vino), #6a0823);
+  color: white;
+  box-shadow: 0 10px 22px rgba(75, 0, 22, 0.18);
+}
+
+.primaryButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #5d001c, #7c0b2d);
+}
+
+.primaryButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.secondaryButton {
+  border: 1px solid var(--border-2);
+  background: white;
+  color: var(--text);
+}
+
+.secondaryButton:hover {
+  background: var(--surface);
+  border-color: var(--vino);
   color: var(--vino);
-  background: #fff;
-  border: 1px solid var(--border);
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-weight: 600;
+  transform: translateY(-1px);
 }
 
-/* ============================================
-   TABLA
-============================================ */
 .tableWrap {
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
   max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 0;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 28px rgba(75, 0, 22, 0.06);
   scrollbar-width: thin;
   scrollbar-color: var(--vino) transparent;
 }
@@ -281,26 +176,27 @@
 .table th {
   position: sticky;
   top: 0;
-  z-index: 3;
-  color: var(--muted);
-  background: var(--vino-f);
-  text-align: left;
+  z-index: 4;
   padding: 11px 14px;
-  font-weight: 600;
+  border-bottom: 1px solid var(--border-2);
+  background: var(--vino-f);
+  color: var(--muted);
+  text-align: center;
   font-size: 10.5px;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
-  border-bottom: 1px solid var(--border-2);
 }
 
 .table td {
   padding: 11px 14px;
   border-bottom: 1px solid var(--border);
+  background: white;
+  color: var(--text);
+  text-align: center;
   vertical-align: middle;
   font-size: 13px;
-  color: var(--text);
-  background: #fff;
   white-space: nowrap;
 }
 
@@ -308,75 +204,75 @@
   background: var(--vino-f);
 }
 
-.table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-/* ============================================
-   CÓDIGO DEL PERMISO
-============================================ */
-.code {
-  display: inline-flex;
-  background: var(--vino-f);
-  color: var(--vino);
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-size: 11px;
+.table td strong {
+  color: var(--text);
   font-weight: 700;
-  font-family: "Courier New", monospace;
-  letter-spacing: 0.3px;
 }
 
-/* ============================================
-   NOMBRE CON ICONO
-============================================ */
-.nameCell {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+.table th:last-child,
+.table td:last-child {
+  position: sticky;
+  right: 0;
+  min-width: 130px;
+  background: white;
+  box-shadow: -8px 0 12px rgba(75, 0, 22, 0.06);
 }
 
-.icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+.table th:last-child {
+  z-index: 6;
   background: var(--vino-f);
-  color: var(--vino);
-  display: flex;
+}
+
+.table td:last-child {
+  z-index: 3;
+}
+
+.code,
+.moduleBadge {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
 }
 
-tr:hover .icon {
-  background: rgba(75, 0, 22, 0.12);
+.code {
+  padding: 4px 9px;
+  background: var(--vino-f);
+  color: var(--vino);
+  font-family: "Courier New", monospace;
+  letter-spacing: 0.2px;
 }
 
-/* ============================================
-   DESCRIPCIÓN
-============================================ */
+.moduleBadge {
+  min-width: 76px;
+  padding: 4px 10px;
+  background: var(--gold-f);
+  color: var(--gold);
+}
+
 .description {
-  color: #444;
-  line-height: 1.4;
   display: block;
   max-width: 280px;
+  margin: 0 auto;
+  color: var(--text);
+  line-height: 1.4;
   white-space: normal;
   word-break: break-word;
 }
 
 .noDescription {
-  color: #c3aab2;
-  font-style: italic;
+  color: var(--muted);
 }
 
-/* ============================================
-   ESTATUS
-============================================ */
 .active,
 .inactive {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 76px;
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 11.5px;
@@ -388,28 +284,23 @@ tr:hover .icon {
   background: #d1fae5;
 }
 
-.active::before {
-  content: "●";
-  font-size: 0.55rem;
-}
-
 .inactive {
   color: #92400e;
   background: #fef3c7;
 }
 
+.active::before,
 .inactive::before {
   content: "●";
+  margin-right: 4px;
   font-size: 0.55rem;
 }
 
-/* ============================================
-   ACCIONES
-============================================ */
 .actions {
   display: flex;
-  gap: 6px;
-  justify-content: flex-end;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
 }
 
 .actions button {
@@ -437,84 +328,66 @@ tr:hover .icon {
   border-color: rgba(182, 138, 42, 0.35);
 }
 
-.actionEnable {
-  background: #ecfdf5;
-  color: #059669;
-}
-
-.actionEnable:hover {
-  border-color: #a7f3d0;
-}
-
-.actionDisable {
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-.actionDisable:hover {
-  border-color: #fecaca;
-}
-
-/* ============================================
-   ESTADO VACÍO
-============================================ */
-.empty {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 40px 24px;
-  text-align: center;
-  color: var(--muted);
-  box-shadow: 0 12px 28px rgba(75, 0, 22, 0.06);
-}
-
-.empty::before {
-  content: "📋";
-  display: block;
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
-
-.clearSearch {
-  background: var(--vino-f);
-  border: none;
-  color: var(--vino);
-  font-weight: 600;
+.statusSwitch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  display: inline-flex;
   cursor: pointer;
-  margin-top: 0.5rem;
-  padding: 8px 14px;
-  border-radius: 10px;
-  transition: background 0.2s ease;
+  flex-shrink: 0;
 }
 
-.clearSearch:hover {
-  background: #eedce2;
+.statusSwitch input {
+  display: none;
 }
 
-/* ============================================
-   MODAL
-============================================ */
+.statusSwitch span {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: #d294a7;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.statusSwitch span::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  top: 3px;
+  left: 3px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 2px 6px rgba(26, 0, 8, 0.2);
+  transition: all 0.2s ease;
+}
+
+.statusSwitch input:checked + span {
+  background: var(--vino);
+}
+
+.statusSwitch input:checked + span::before {
+  transform: translateX(20px);
+}
+
+.empty {
+  padding: 40px 24px !important;
+  color: var(--muted) !important;
+  font-weight: 500;
+  text-align: center;
+}
+
 .modalBg {
   position: fixed;
   inset: 0;
+  z-index: 2000;
   background: rgba(26, 0, 8, 0.55);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
   padding: 20px;
   overflow: hidden;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
 }
 
 .modal {
@@ -522,89 +395,73 @@ tr:hover .icon {
   max-height: 90vh;
   background: white;
   border-radius: 16px;
-  overflow: hidden;
+  overflow: hidden auto;
   display: flex;
   flex-direction: column;
   box-shadow: 0 24px 60px rgba(26, 0, 8, 0.25);
-  animation: slideUp 0.25s ease;
+  animation: modalPop 0.22s ease;
 }
 
-@keyframes slideUp {
+@keyframes modalPop {
   from {
-    transform: translateY(24px);
     opacity: 0;
+    transform: translateY(12px) scale(0.98);
   }
 
   to {
-    transform: translateY(0);
     opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
 .modalHead {
   flex: 0 0 auto;
-  padding: 20px 24px;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
   align-items: flex-start;
+  padding: 20px 24px;
   background: linear-gradient(135deg, var(--vino), #6a0823);
 }
 
 .modalHead h2 {
   margin: 0;
-  color: #fff;
-  font-family: "Playfair Display", serif;
+  color: white;
   font-size: 18px;
-  font-weight: 500;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
 .modalHead p {
   margin: 3px 0 0;
   color: rgba(255, 255, 255, 0.75);
   font-size: 12px;
+  line-height: 1.4;
 }
 
 .modalHead button {
-  width: 32px;
-  height: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  width: 30px;
+  height: 30px;
+  border: none;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  font-size: 1.2rem;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
   cursor: pointer;
-  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .modalHead button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .modalBody {
-  flex: 1 1 auto;
-  min-height: 0;
   padding: 20px 24px 24px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--vino) transparent;
-}
-
-.modalBody::-webkit-scrollbar {
-  width: 3px;
-}
-
-.modalBody::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.modalBody::-webkit-scrollbar-thumb {
-  background: var(--vino);
-  border-radius: 999px;
 }
 
 .modalBody label {
@@ -639,154 +496,105 @@ tr:hover .icon {
   transition: all 0.2s ease;
 }
 
+.modalBody textarea {
+  min-height: 90px;
+}
+
 .modalBody input:focus,
 .modalBody textarea:focus {
   border-color: var(--vino);
   box-shadow: 0 0 0 3px rgba(75, 0, 22, 0.06);
 }
 
-.modalBody textarea {
-  min-height: 84px;
-}
-
 .modalFoot {
   flex: 0 0 auto;
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  padding: 14px 24px;
+  gap: 12px;
+  padding: 18px 24px 22px;
   border-top: 1px solid var(--border);
   background: var(--surface);
 }
 
-.cancelButton {
-  height: 40px;
-  padding: 0 16px;
+.cancelButton,
+.modalFoot .primaryButton {
+  height: 42px;
+  min-width: 140px;
+  padding: 0 18px;
   border-radius: 10px;
-  border: 1px solid var(--border-2);
-  background: #fff;
-  color: var(--text);
+  font-size: 13px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+}
+
+.cancelButton {
+  border: 1px solid var(--border-2);
+  background: white;
+  color: var(--text);
 }
 
 .cancelButton:hover {
-  background: var(--surface);
-  border-color: var(--muted);
+  background: var(--vino-f);
+  border-color: var(--vino);
+  color: var(--vino);
+  transform: translateY(-1px);
 }
 
-/* ============================================
-   SPINNER
-============================================ */
-.spinner {
-  display: inline-block;
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid var(--vino);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* ============================================
-   RESPONSIVE
-============================================ */
 @media (max-width: 900px) {
   .page {
     height: calc(100dvh - 56px);
     padding: 12px;
-    gap: 10px;
-  }
-
-  .header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 9px;
-  }
-
-  .header h1 {
-    font-size: 20px;
   }
 
   .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 9px;
+    grid-template-columns: 1fr;
   }
 
   .searchBox {
-    min-width: 100%;
     max-width: 100%;
   }
 
-  .toggleButton {
+  .toolbarActions {
     width: 100%;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
-  .groupHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
+  .toolbarActions button {
+    width: 100%;
   }
 
   .table {
-    min-width: 760px;
+    min-width: 900px;
   }
 
   .description {
-    max-width: 180px;
+    max-width: 220px;
+  }
+
+  .modalBg {
+    padding: 14px;
+  }
+
+  .modal {
+    width: min(620px, 100%);
   }
 }
 
 @media (max-width: 480px) {
   .page {
-    height: calc(100dvh - 56px);
     padding: 10px;
-    gap: 8px;
   }
 
-  .header h1 {
-    font-size: 19px;
-  }
-
-  .header p {
-    font-size: 12px;
-  }
-
-  .primaryButton,
-  .toggleButton {
-    width: 100%;
-    justify-content: center;
+  .toolbarActions {
+    grid-template-columns: 1fr;
   }
 
   .table {
-    min-width: 680px;
+    min-width: 820px;
   }
 
   .description {
-    max-width: 130px;
-  }
-
-  .code {
-    font-size: 10px;
-  }
-
-  .icon {
-    width: 30px;
-    height: 30px;
+    max-width: 170px;
   }
 
   .actions button {
@@ -803,20 +611,37 @@ tr:hover .icon {
     width: 100%;
     max-height: 95vh;
     border-radius: 16px 16px 0 0;
+    animation: modalSlideUp 0.24s ease;
+  }
+
+  @keyframes modalSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .modalHead,
   .modalBody,
   .modalFoot {
-    padding-left: 18px;
-    padding-right: 18px;
+    padding-left: 20px;
+    padding-right: 20px;
   }
 
   .modalFoot {
-    flex-direction: column;
+    flex-direction: column-reverse;
+    gap: 10px;
+    padding-top: 14px;
+    padding-bottom: 20px;
   }
 
   .modalFoot button {
     width: 100%;
+    min-width: 0;
   }
 }

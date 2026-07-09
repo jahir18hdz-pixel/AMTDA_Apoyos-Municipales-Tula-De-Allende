@@ -6,13 +6,15 @@ import {
   FiMapPin,
   FiPlus,
   FiSearch,
-  FiTrash2,
   FiUserCheck,
   FiX,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
+import { ConfirmModal } from "../../components/ui/confirm-modal/ConfirmModal";
 import { comunidadService } from "@/services/comunidad.service";
 import type { Comunidad, CrearComunidadRequest } from "@/types/comunidad.types";
+import { useToast } from "@/components/ui/toast/useToast";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import styles from "./componentes/comunidadesPage.module.css";
 
 const REGISTROS_POR_PAGINA = 10;
@@ -24,6 +26,18 @@ const initialForm: CrearComunidadRequest = {
   delegado: "",
   telefonoDelegado: "",
   delegadoIne: null,
+};
+
+type ConfirmVariant = "danger" | "warning" | "success" | "default";
+
+const initialConfirmacion = {
+  open: false,
+  title: "",
+  message: "",
+  confirmText: "Confirmar",
+  variant: "default" as ConfirmVariant,
+  loading: false,
+  action: null as (() => Promise<void>) | null,
 };
 
 type BackendPaginatedResult<T> = {
@@ -61,6 +75,12 @@ const initialPagination: PaginationMeta = {
   hasNextPage: false,
 };
 
+type Permiso =
+  | string
+  | {
+      permiso: string;
+    };
+
 function getItems<T>(data: BackendPaginatedResult<T>) {
   return data.Items ?? data.items ?? [];
 }
@@ -75,12 +95,6 @@ function getPaginationMeta<T>(data: BackendPaginatedResult<T>): PaginationMeta {
     hasNextPage: data.HasNextPage ?? data.hasNextPage ?? false,
   };
 }
-
-type Permiso =
-  | string
-  | {
-      permiso: string;
-    };
 
 function getUserPermissions() {
   const rawUser = localStorage.getItem("presi2_auth");
@@ -105,15 +119,6 @@ function getUserPermissions() {
   }
 }
 
-function initials(nombre: string) {
-  return nombre
-    .split(" ")
-    .map((word) => word[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
-
 function capitalizeWords(value: string) {
   return value
     .toLowerCase()
@@ -125,11 +130,12 @@ function onlyNumbers(value: string, maxLength: number) {
 }
 
 export default function ComunidadesPage() {
+  const toast = useToast();
   const permissions = useMemo(() => getUserPermissions(), []);
 
   const hasPermission = useCallback(
     (permission: string) => permissions.includes(permission),
-    [permissions],
+    [permissions]
   );
 
   const canCreate = hasPermission("comunidades.create");
@@ -162,6 +168,7 @@ export default function ComunidadesPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [confirmacion, setConfirmacion] = useState(initialConfirmacion);
 
   const cargarComunidades = useCallback(
     async (page: number) => {
@@ -190,7 +197,7 @@ export default function ComunidadesPage() {
         setTotalActivas(getPaginationMeta(activasData).totalRecords);
         setTotalInactivas(getPaginationMeta(inactivasData).totalRecords);
       } catch (error) {
-        console.error("Error al cargar comunidades", error);
+        toast.error(getApiErrorMessage(error));
         setComunidades([]);
         setPagination(initialPagination);
         setTotalActivas(0);
@@ -199,9 +206,8 @@ export default function ComunidadesPage() {
         setLoading(false);
       }
     },
-    [mostrarActivas],
+    [mostrarActivas, toast]
   );
-
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -228,9 +234,31 @@ export default function ComunidadesPage() {
   const totalComunidades = totalActivas + totalInactivas;
   const paginaSegura = pagination.pageNumber;
   const totalPaginas = pagination.totalPages;
+  const showActions = canViewIne || canEdit || canChangeStatus;
 
-  function handleQueryChange(event: React.ChangeEvent<HTMLInputElement>) {
-    setQuery(event.target.value);
+  function cerrarConfirmacion() {
+    if (confirmacion.loading) return;
+    setConfirmacion(initialConfirmacion);
+  }
+
+  async function confirmarAccion() {
+    if (!confirmacion.action) return;
+
+    try {
+      setConfirmacion((prev) => ({
+        ...prev,
+        loading: true,
+      }));
+
+      await confirmacion.action();
+
+      setConfirmacion(initialConfirmacion);
+    } catch {
+      setConfirmacion((prev) => ({
+        ...prev,
+        loading: false,
+      }));
+    }
   }
 
   function toggleFiltroActivas() {
@@ -315,12 +343,12 @@ export default function ComunidadesPage() {
     if (!editingId && !canCreate) return;
 
     if (form.codigoPostal.length !== 5) {
-      alert("El código postal debe tener 5 dígitos.");
+      toast.error("El código postal debe tener 5 dígitos.");
       return;
     }
 
     if (form.telefonoDelegado && form.telefonoDelegado.length !== 10) {
-      alert("El teléfono del delegado debe tener 10 dígitos.");
+      toast.error("El teléfono del delegado debe tener 10 dígitos.");
       return;
     }
 
@@ -339,20 +367,23 @@ export default function ComunidadesPage() {
         if (form.delegadoIne) {
           await comunidadService.actualizarIne(editingId, form.delegadoIne);
         }
+
+        toast.success("Comunidad actualizada correctamente.");
       } else {
         await comunidadService.crear(form);
+        toast.success("Comunidad creada correctamente.");
       }
 
       closeModal();
       await cargarComunidades(paginaActual);
     } catch (error) {
-      console.error("Error al guardar comunidad", error);
+      toast.error(getApiErrorMessage(error));
     } finally {
       setSaving(false);
     }
   }
 
-  async function toggleEstatus(comunidad: Comunidad) {
+  async function cambiarEstatus(comunidad: Comunidad) {
     if (!canChangeStatus) return;
 
     try {
@@ -365,9 +396,30 @@ export default function ComunidadesPage() {
       } else {
         await cargarComunidades(paginaActual);
       }
+
+      toast.success(
+        comunidad.activo
+          ? "Comunidad desactivada correctamente."
+          : "Comunidad activada correctamente."
+      );
     } catch (error) {
-      console.error("Error al cambiar estatus", error);
+      toast.error(getApiErrorMessage(error));
+      throw error;
     }
+  }
+
+  function pedirCambioEstatus(comunidad: Comunidad) {
+    setConfirmacion({
+      open: true,
+      title: comunidad.activo ? "Desactivar comunidad" : "Activar comunidad",
+      message: `¿Seguro que deseas ${
+        comunidad.activo ? "desactivar" : "activar"
+      } la comunidad "${comunidad.nombre}"?`,
+      confirmText: comunidad.activo ? "Desactivar" : "Activar",
+      variant: comunidad.activo ? "danger" : "success",
+      loading: false,
+      action: () => cambiarEstatus(comunidad),
+    });
   }
 
   function verIne(comunidad: Comunidad) {
@@ -379,38 +431,51 @@ export default function ComunidadesPage() {
     setIneModalOpen(true);
   }
 
-  const showActions = canViewIne || canEdit || canChangeStatus;
-
   return (
     <section className={styles.page}>
-      <div className={styles.header}>
+      <section className={styles.panel}>
+        <div className={styles.toolbar}>
+          <div className={styles.searchBox}>
+            <FiSearch />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar comunidad, clave o delegado..."
+            />
+          </div>
 
-        <div className={styles.headerActions}>
-          {canExport && (
-            <Button variant="outline" size="sm" className={styles.exportButton}>
-              <FiDownload />
-              Exportar PDF
-            </Button>
-          )}
+          <div className={styles.toolbarActions}>
+            {canExport && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className={styles.secondaryButton}
+              >
+                <FiDownload />
+                Exportar PDF
+              </Button>
+            )}
 
-          {canCreate && (
-            <Button
-              onClick={() => openModal()}
-              className={styles.primaryButton}
-            >
-              <FiPlus />
-              Nueva Comunidad
-            </Button>
-          )}
+            {canCreate && (
+              <Button
+                type="button"
+                onClick={() => openModal()}
+                className={styles.primaryButton}
+              >
+                <FiPlus />
+                Nueva comunidad
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className={styles.toolbar}>
         <div className={styles.stats}>
           <div className={styles.statCard}>
             <div className={styles.statIcon}>
               <FiMapPin />
             </div>
+
             <div>
               <span>Total comunidades</span>
               <strong>{totalComunidades}</strong>
@@ -441,170 +506,144 @@ export default function ComunidadesPage() {
           </button>
         </div>
 
-        <div className={styles.searchBox}>
-          <FiSearch />
-          <input
-            value={query}
-            onChange={handleQueryChange}
-            placeholder="Buscar comunidad o delegado…"
-          />
-        </div>
-      </div>
+        <p className={styles.scrollHint}>
+          Desliza la tabla hacia la derecha para ver más información.
+        </p>
 
-      <p className={styles.scrollHint}>
-        Desliza la tabla hacia la derecha para ver más información.
-      </p>
-
-      <div className={styles.tableWrap}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Comunidad</th>
-              <th>Clave</th>
-              <th>C.P.</th>
-              <th>Delegado</th>
-              <th>Teléfono</th>
-              <th>Estatus</th>
-              {showActions && <th>Acciones</th>}
-            </tr>
-          </thead>
-
-          <tbody>
-            {loading ? (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
               <tr>
-                <td colSpan={showActions ? 7 : 6} className={styles.empty}>
-                  Cargando comunidades...
-                </td>
+                <th>Comunidad</th>
+                <th>Clave</th>
+                <th>C.P.</th>
+                <th>Delegado</th>
+                <th>Teléfono</th>
+                <th>Estatus</th>
+                {showActions && <th>Acciones</th>}
               </tr>
-            ) : comunidadesFiltradas.length === 0 ? (
-              <tr>
-                <td colSpan={showActions ? 7 : 6} className={styles.empty}>
-                  No se encontraron comunidades en esta página.
-                </td>
-              </tr>
-            ) : (
-              comunidadesFiltradas.map((comunidad) => (
-                <tr key={comunidad.id}>
-                  <td>
-                    <div className={styles.communityCell}>
-                      <div className={styles.avatar}>
-                        {initials(comunidad.nombre)}
-                      </div>
+            </thead>
 
-                      <div>
-                        <strong>{comunidad.nombre}</strong>
-                        <div className={styles.progress}>
-                          <div
-                            className={styles.progressFill}
-                            style={{
-                              width: comunidad.activo ? "100%" : "35%",
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={showActions ? 7 : 6} className={styles.empty}>
+                    Cargando comunidades...
                   </td>
-
-                  <td>
-                    <span className={styles.chip}>
-                      {comunidad.claveInterna}
-                    </span>
-                  </td>
-
-                  <td>{comunidad.codigoPostal}</td>
-
-                  <td>
-                    {comunidad.delegado || (
-                      <span className={styles.muted}>Sin asignar</span>
-                    )}
-                  </td>
-
-                  <td>{comunidad.telefonoDelegado || "—"}</td>
-
-                  <td>
-                    <span
-                      className={
-                        comunidad.activo ? styles.active : styles.inactive
-                      }
-                    >
-                      {comunidad.activo ? "Activa" : "Inactiva"}
-                    </span>
-                  </td>
-
-                  {showActions && (
-                    <td>
-                      <div className={styles.actions}>
-                        {canViewIne && (
-                          <button
-                            type="button"
-                            className={styles.actionView}
-                            title="Ver INE"
-                            onClick={() => verIne(comunidad)}
-                          >
-                            <FiEye />
-                          </button>
-                        )}
-
-                        {canEdit && (
-                          <button
-                            type="button"
-                            className={styles.actionEdit}
-                            title="Editar"
-                            onClick={() => openModal(comunidad)}
-                          >
-                            <FiEdit2 />
-                          </button>
-                        )}
-
-                        {canChangeStatus && (
-                          <button
-                            type="button"
-                            className={
-                              comunidad.activo
-                                ? styles.actionDisable
-                                : styles.actionEnable
-                            }
-                            title={comunidad.activo ? "Desactivar" : "Activar"}
-                            onClick={() => toggleEstatus(comunidad)}
-                          >
-                            <FiTrash2 />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  )}
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ) : comunidadesFiltradas.length === 0 ? (
+                <tr>
+                  <td colSpan={showActions ? 7 : 6} className={styles.empty}>
+                    No se encontraron comunidades.
+                  </td>
+                </tr>
+              ) : (
+                comunidadesFiltradas.map((comunidad) => (
+                  <tr key={comunidad.id}>
+                    <td>
+                      <strong>{comunidad.nombre}</strong>
+                    </td>
 
-      <div className={styles.pagination}>
-        <span>
-          Página {pagination.totalRecords === 0 ? 0 : paginaSegura} de{" "}
-          {pagination.totalRecords === 0 ? 0 : totalPaginas} ·{" "}
-          {pagination.totalRecords} registros
-        </span>
+                    <td>
+                      <span className={styles.chip}>
+                        {comunidad.claveInterna}
+                      </span>
+                    </td>
 
-        <div>
-          <button
-            type="button"
-            disabled={loading || !pagination.hasPreviousPage}
-            onClick={() => setPaginaActual((prev) => Math.max(prev - 1, 1))}
-          >
-            Anterior
-          </button>
+                    <td>{comunidad.codigoPostal}</td>
 
-          <button
-            type="button"
-            disabled={loading || !pagination.hasNextPage}
-            onClick={() => setPaginaActual((prev) => prev + 1)}
-          >
-            Siguiente
-          </button>
+                    <td>
+                      {comunidad.delegado || (
+                        <span className={styles.muted}>Sin asignar</span>
+                      )}
+                    </td>
+
+                    <td>{comunidad.telefonoDelegado || "—"}</td>
+
+                    <td>
+                      {comunidad.activo ? (
+                        <span className={styles.active}>Activa</span>
+                      ) : (
+                        <span className={styles.inactive}>Inactiva</span>
+                      )}
+                    </td>
+
+                    {showActions && (
+                      <td>
+                        <div className={styles.actions}>
+                          {canViewIne && (
+                            <button
+                              type="button"
+                              className={styles.actionView}
+                              title="Ver INE"
+                              onClick={() => verIne(comunidad)}
+                            >
+                              <FiEye />
+                            </button>
+                          )}
+
+                          {canEdit && (
+                            <button
+                              type="button"
+                              className={styles.actionEdit}
+                              title="Editar"
+                              onClick={() => openModal(comunidad)}
+                            >
+                              <FiEdit2 />
+                            </button>
+                          )}
+
+                          {canChangeStatus && (
+                            <label
+                              className={styles.statusSwitch}
+                              title={
+                                comunidad.activo ? "Desactivar" : "Activar"
+                              }
+                            >
+                              <input
+                                type="checkbox"
+                                checked={comunidad.activo}
+                                onChange={() => pedirCambioEstatus(comunidad)}
+                              />
+                              <span />
+                            </label>
+                          )}
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      </div>
+
+        <footer className={styles.pagination}>
+          <span>
+            Página {pagination.totalRecords === 0 ? 0 : paginaSegura} de{" "}
+            {pagination.totalRecords === 0 ? 0 : totalPaginas} ·{" "}
+            {pagination.totalRecords} registros
+          </span>
+
+          <div>
+            <button
+              type="button"
+              disabled={loading || !pagination.hasPreviousPage}
+              onClick={() => setPaginaActual((prev) => Math.max(prev - 1, 1))}
+            >
+              Anterior
+            </button>
+
+            <button
+              type="button"
+              disabled={loading || !pagination.hasNextPage}
+              onClick={() => setPaginaActual((prev) => prev + 1)}
+            >
+              Siguiente
+            </button>
+          </div>
+        </footer>
+      </section>
 
       {modalOpen && (
         <div className={styles.modalBg}>
@@ -615,13 +654,22 @@ export default function ComunidadesPage() {
               </div>
 
               <div>
-                <h2>{editingId ? "Editar Comunidad" : "Nueva Comunidad"}</h2>
+                <h2>{editingId ? "Editar comunidad" : "Nueva comunidad"}</h2>
                 <p>
                   {editingId
                     ? "Actualiza los datos generales de la comunidad."
                     : "Registra una nueva comunidad beneficiada."}
                 </p>
               </div>
+
+              <button
+                type="button"
+                className={styles.closeButton}
+                onClick={closeModal}
+                title="Cerrar"
+              >
+                <FiX />
+              </button>
             </div>
 
             <div className={styles.modalBody}>
@@ -650,7 +698,7 @@ export default function ComunidadesPage() {
               </div>
 
               <label>
-                Código Postal <span>*</span>
+                Código postal <span>*</span>
                 <input
                   name="codigoPostal"
                   value={form.codigoPostal}
@@ -727,8 +775,8 @@ export default function ComunidadesPage() {
                 {saving
                   ? "Guardando..."
                   : editingId
-                    ? "Actualizar comunidad"
-                    : "Guardar comunidad"}
+                    ? "Guardar cambios"
+                    : "Crear comunidad"}
               </Button>
             </div>
           </form>
@@ -758,10 +806,6 @@ export default function ComunidadesPage() {
             <div className={styles.ineBody}>
               {selectedDelegado && (
                 <div className={styles.ineDelegateRow}>
-                  <div className={styles.avatar}>
-                    {initials(selectedDelegado)}
-                  </div>
-
                   <div>
                     <strong>{selectedDelegado}</strong>
                     <span>Delegado responsable</span>
@@ -781,6 +825,7 @@ export default function ComunidadesPage() {
                     alt={`INE del delegado de ${selectedCommunityName}`}
                     className={styles.ineImage}
                   />
+
                   <span className={styles.ineZoom}>
                     <FiEye /> Ver en tamaño completo
                   </span>
@@ -818,6 +863,17 @@ export default function ComunidadesPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmacion.open}
+        title={confirmacion.title}
+        message={confirmacion.message}
+        confirmText={confirmacion.confirmText}
+        variant={confirmacion.variant}
+        loading={confirmacion.loading}
+        onCancel={cerrarConfirmacion}
+        onConfirm={() => void confirmarAccion()}
+      />
     </section>
   );
 }

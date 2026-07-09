@@ -1,20 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  FiEdit2,
-  FiPlus,
-  FiSearch,
-  FiShield,
-  FiTrash2,
-  FiX,
-} from "react-icons/fi";
+import { FiEdit2, FiPlus, FiSearch, FiShield, FiX } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
+import { ConfirmModal } from "../../../components/ui/confirm-modal/ConfirmModal";
 import { rolService } from "../../../services/rolService";
 import type { Rol, RolPermiso } from "@/types/rol.types";
+import { useToast } from "@/components/ui/toast/useToast";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import styles from "./RolesPage.module.css";
 
 const initialForm = {
   nombre: "",
   descripcion: "",
+};
+
+type ConfirmVariant = "danger" | "warning" | "success" | "default";
+
+const initialConfirmacion = {
+  open: false,
+  title: "",
+  message: "",
+  confirmText: "Confirmar",
+  variant: "default" as ConfirmVariant,
+  loading: false,
+  action: null as (() => Promise<void>) | null,
 };
 
 type Permiso =
@@ -47,10 +55,10 @@ function getUserPermissions() {
 }
 
 export default function RolesPage() {
+  const toast = useToast();
   const permissions = useMemo(() => getUserPermissions(), []);
 
-  const hasPermission = (permission: string) =>
-    permissions.includes(permission);
+  const hasPermission = (permission: string) => permissions.includes(permission);
 
   const canCreate = hasPermission("roles.create");
   const canEdit = hasPermission("roles.edit");
@@ -72,6 +80,7 @@ export default function RolesPage() {
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [confirmacion, setConfirmacion] = useState(initialConfirmacion);
 
   async function cargarRoles() {
     try {
@@ -81,9 +90,9 @@ export default function RolesPage() {
         ? await rolService.obtenerInactivos(1, 20)
         : await rolService.obtenerActivos(1, 20);
 
-      setRoles(data.items);
+      setRoles(data.items ?? []);
     } catch (error) {
-      console.error("Error al cargar roles", error);
+      toast.error(getApiErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -102,10 +111,10 @@ export default function RolesPage() {
 
         if (!activo) return;
 
-        setRoles(data.items);
+        setRoles(data.items ?? []);
       } catch (error) {
         if (activo) {
-          console.error("Error al cargar roles", error);
+          toast.error(getApiErrorMessage(error));
         }
       } finally {
         if (activo) {
@@ -119,7 +128,7 @@ export default function RolesPage() {
     return () => {
       activo = false;
     };
-  }, [mostrarInactivos]);
+  }, [mostrarInactivos, toast]);
 
   const rolesFiltrados = useMemo(() => {
     const value = query.toLowerCase().trim();
@@ -133,6 +142,45 @@ export default function RolesPage() {
       );
     });
   }, [roles, query]);
+
+  const permisosAgrupados = useMemo(() => {
+    return rolPermisos.reduce<Record<string, RolPermiso[]>>((acc, permiso) => {
+      const modulo = permiso.modulo || "General";
+
+      if (!acc[modulo]) acc[modulo] = [];
+
+      acc[modulo].push(permiso);
+
+      return acc;
+    }, {});
+  }, [rolPermisos]);
+
+  const showActions = canEdit || canChangeStatus || canManagePermissions;
+
+  function cerrarConfirmacion() {
+    if (confirmacion.loading) return;
+    setConfirmacion(initialConfirmacion);
+  }
+
+  async function confirmarAccion() {
+    if (!confirmacion.action) return;
+
+    try {
+      setConfirmacion((prev) => ({
+        ...prev,
+        loading: true,
+      }));
+
+      await confirmacion.action();
+
+      setConfirmacion(initialConfirmacion);
+    } catch {
+      setConfirmacion((prev) => ({
+        ...prev,
+        loading: false,
+      }));
+    }
+  }
 
   function openModal(rol?: Rol) {
     if (rol && !canEdit) return;
@@ -158,6 +206,17 @@ export default function RolesPage() {
     setForm(initialForm);
   }
 
+  function cerrarPermisos() {
+    setPermissionsModalOpen(false);
+    setSelectedRol(null);
+    setRolPermisos([]);
+  }
+
+  function toggleVista() {
+    setMostrarInactivos((prev) => !prev);
+    setQuery("");
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -169,20 +228,22 @@ export default function RolesPage() {
 
       if (editingId) {
         await rolService.actualizar(editingId, form);
+        toast.success("Rol actualizado correctamente.");
       } else {
         await rolService.crear(form);
+        toast.success("Rol creado correctamente.");
       }
 
       closeModal();
       await cargarRoles();
     } catch (error) {
-      console.error("Error al guardar rol", error);
+      toast.error(getApiErrorMessage(error));
     } finally {
       setSaving(false);
     }
   }
 
-  async function toggleEstatus(rol: Rol) {
+  async function cambiarEstatus(rol: Rol) {
     if (!canChangeStatus) return;
 
     try {
@@ -191,9 +252,30 @@ export default function RolesPage() {
       });
 
       await cargarRoles();
+
+      toast.success(
+        rol.activo
+          ? "Rol desactivado correctamente."
+          : "Rol activado correctamente."
+      );
     } catch (error) {
-      console.error("Error al cambiar estatus del rol", error);
+      toast.error(getApiErrorMessage(error));
+      throw error;
     }
+  }
+
+  function pedirCambioEstatus(rol: Rol) {
+    setConfirmacion({
+      open: true,
+      title: rol.activo ? "Desactivar rol" : "Activar rol",
+      message: `¿Seguro que deseas ${
+        rol.activo ? "desactivar" : "activar"
+      } el rol "${rol.nombre}"?`,
+      confirmText: rol.activo ? "Desactivar" : "Activar",
+      variant: rol.activo ? "danger" : "success",
+      loading: false,
+      action: () => cambiarEstatus(rol),
+    });
   }
 
   async function openPermissionsModal(rol: Rol) {
@@ -205,9 +287,9 @@ export default function RolesPage() {
 
       const { data } = await rolService.obtenerPermisos(rol.id);
 
-      setRolPermisos(data);
+      setRolPermisos(data ?? []);
     } catch (error) {
-      console.error("Error al cargar permisos del rol", error);
+      toast.error(getApiErrorMessage(error));
     }
   }
 
@@ -220,8 +302,8 @@ export default function RolesPage() {
       prev.map((item) =>
         item.permisoId === permiso.permisoId
           ? { ...item, asignado: nuevoValor }
-          : item,
-      ),
+          : item
+      )
     );
 
     try {
@@ -229,161 +311,150 @@ export default function RolesPage() {
         permisoId: permiso.permisoId,
         asignado: nuevoValor,
       });
+
+      toast.success(
+        nuevoValor
+          ? "Permiso asignado correctamente."
+          : "Permiso removido correctamente."
+      );
     } catch (error) {
-      console.error("Error al actualizar permiso", error);
+      toast.error(getApiErrorMessage(error));
 
       setRolPermisos((prev) =>
         prev.map((item) =>
           item.permisoId === permiso.permisoId
             ? { ...item, asignado: permiso.asignado }
-            : item,
-        ),
+            : item
+        )
       );
     }
   }
 
-  const permisosAgrupados = useMemo(() => {
-    return rolPermisos.reduce<Record<string, RolPermiso[]>>((acc, permiso) => {
-      const modulo = permiso.modulo || "General";
-
-      if (!acc[modulo]) acc[modulo] = [];
-
-      acc[modulo].push(permiso);
-
-      return acc;
-    }, {});
-  }, [rolPermisos]);
-
-  const showActions = canEdit || canChangeStatus || canManagePermissions;
-
   return (
     <section className={styles.page}>
-      <div className={styles.header}>
-        <div>
-          <h1>Administra los roles y permisos del sistema</h1>
-        </div>
+      <section className={styles.panel}>
+        <div className={styles.toolbar}>
+          <div className={styles.searchBox}>
+            <FiSearch />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Buscar rol..."
+            />
+          </div>
 
-        {canCreate && (
-          <Button onClick={() => openModal()} className={styles.primaryButton}>
-            <FiPlus />
-            Nuevo rol
-          </Button>
-        )}
-      </div>
+          <div className={styles.toolbarActions}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={toggleVista}
+              className={styles.secondaryButton}
+            >
+              {mostrarInactivos ? "Ver activos" : "Ver inactivos"}
+            </Button>
 
-      <div className={styles.toolbar}>
-        <div className={styles.searchBox}>
-          <FiSearch />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar rol…"
-          />
-        </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setMostrarInactivos((prev) => !prev)}
-          className={`${styles.toggleButton} ${
-            mostrarInactivos ? styles.toggleButtonActive : ""
-          }`}
-        >
-          {mostrarInactivos ? "Ver activos" : "Ver inactivos"}
-        </Button>
-      </div>
-
-      <div className={styles.tableWrap}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Rol</th>
-              <th>Descripción</th>
-              <th>Estatus</th>
-              {showActions && <th></th>}
-            </tr>
-          </thead>
-
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={showActions ? 4 : 3} className={styles.empty}>
-                  Cargando roles...
-                </td>
-              </tr>
-            ) : rolesFiltrados.length === 0 ? (
-              <tr>
-                <td colSpan={showActions ? 4 : 3} className={styles.empty}>
-                  No se encontraron roles.
-                </td>
-              </tr>
-            ) : (
-              rolesFiltrados.map((rol) => (
-                <tr key={rol.id}>
-                  <td data-label="Rol">
-                    <div className={styles.rolCell}>
-                      <div className={styles.rolIcon}>
-                        <FiShield />
-                      </div>
-                      <strong>{rol.nombre}</strong>
-                    </div>
-                  </td>
-
-                  <td data-label="Descripción">{rol.descripcion || "—"}</td>
-
-                  <td data-label="Estatus">
-                    <span
-                      className={rol.activo ? styles.active : styles.inactive}
-                    >
-                      {rol.activo ? "Activo" : "Inactivo"}
-                    </span>
-                  </td>
-
-                  {showActions && (
-                    <td data-label="Acciones">
-                      <div className={styles.actions}>
-                        {canManagePermissions && (
-                          <button
-                            className={styles.actionPermissions}
-                            title="Permisos"
-                            onClick={() => openPermissionsModal(rol)}
-                          >
-                            <FiShield />
-                          </button>
-                        )}
-
-                        {canEdit && (
-                          <button
-                            className={styles.actionEdit}
-                            title="Editar"
-                            onClick={() => openModal(rol)}
-                          >
-                            <FiEdit2 />
-                          </button>
-                        )}
-
-                        {canChangeStatus && (
-                          <button
-                            className={
-                              rol.activo
-                                ? styles.actionDisable
-                                : styles.actionEnable
-                            }
-                            title={rol.activo ? "Desactivar" : "Activar"}
-                            onClick={() => toggleEstatus(rol)}
-                          >
-                            <FiTrash2 />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))
+            {canCreate && (
+              <Button
+                type="button"
+                onClick={() => openModal()}
+                className={styles.primaryButton}
+              >
+                <FiPlus />
+                Nuevo rol
+              </Button>
             )}
-          </tbody>
-        </table>
-      </div>
+          </div>
+        </div>
+
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Rol</th>
+                <th>Descripción</th>
+                <th>Estatus</th>
+                {showActions && <th>Acciones</th>}
+              </tr>
+            </thead>
+
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={showActions ? 4 : 3} className={styles.empty}>
+                    Cargando roles...
+                  </td>
+                </tr>
+              ) : rolesFiltrados.length === 0 ? (
+                <tr>
+                  <td colSpan={showActions ? 4 : 3} className={styles.empty}>
+                    No se encontraron roles.
+                  </td>
+                </tr>
+              ) : (
+                rolesFiltrados.map((rol) => (
+                  <tr key={rol.id}>
+                    <td>
+                      <strong>{rol.nombre}</strong>
+                    </td>
+
+                    <td>{rol.descripcion || "Sin descripción"}</td>
+
+                    <td>
+                      <span
+                        className={rol.activo ? styles.active : styles.inactive}
+                      >
+                        {rol.activo ? "Activo" : "Inactivo"}
+                      </span>
+                    </td>
+
+                    {showActions && (
+                      <td>
+                        <div className={styles.actions}>
+                          {canManagePermissions && (
+                            <button
+                              type="button"
+                              className={styles.actionPermissions}
+                              title="Permisos"
+                              onClick={() => void openPermissionsModal(rol)}
+                            >
+                              <FiShield />
+                            </button>
+                          )}
+
+                          {canEdit && (
+                            <button
+                              type="button"
+                              className={styles.actionEdit}
+                              title="Editar"
+                              onClick={() => openModal(rol)}
+                            >
+                              <FiEdit2 />
+                            </button>
+                          )}
+
+                          {canChangeStatus && (
+                            <label
+                              className={styles.statusSwitch}
+                              title={rol.activo ? "Desactivar" : "Activar"}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={rol.activo}
+                                onChange={() => pedirCambioEstatus(rol)}
+                              />
+                              <span />
+                            </label>
+                          )}
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       {modalOpen && (
         <div className={styles.modalBg}>
@@ -398,7 +469,7 @@ export default function RolesPage() {
                 </p>
               </div>
 
-              <button type="button" onClick={closeModal}>
+              <button type="button" onClick={closeModal} title="Cerrar">
                 <FiX />
               </button>
             </div>
@@ -453,8 +524,8 @@ export default function RolesPage() {
                 {saving
                   ? "Guardando..."
                   : editingId
-                    ? "Actualizar rol"
-                    : "Guardar rol"}
+                    ? "Guardar cambios"
+                    : "Crear rol"}
               </Button>
             </div>
           </form>
@@ -470,54 +541,49 @@ export default function RolesPage() {
                 <p>{selectedRol.nombre}</p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setPermissionsModalOpen(false);
-                  setSelectedRol(null);
-                  setRolPermisos([]);
-                }}
-              >
+              <button type="button" onClick={cerrarPermisos} title="Cerrar">
                 <FiX />
               </button>
             </div>
 
             <div className={styles.permissionsBody}>
-              {Object.entries(permisosAgrupados).map(([modulo, permisos]) => (
-                <div key={modulo} className={styles.permissionGroup}>
-                  <h3>{modulo}</h3>
-
-                  <div className={styles.permissionList}>
-                    {permisos.map((permiso) => (
-                      <label
-                        key={permiso.permisoId}
-                        className={styles.permissionItem}
-                      >
-                        <div>
-                          <strong>{permiso.nombre}</strong>
-                          <span>{permiso.descripcion || permiso.codigo}</span>
-                        </div>
-
-                        <input
-                          type="checkbox"
-                          checked={permiso.asignado}
-                          onChange={() => togglePermiso(permiso)}
-                        />
-                      </label>
-                    ))}
-                  </div>
+              {Object.entries(permisosAgrupados).length === 0 ? (
+                <div className={styles.emptyPermissions}>
+                  No hay permisos disponibles para mostrar.
                 </div>
-              ))}
+              ) : (
+                Object.entries(permisosAgrupados).map(([modulo, permisos]) => (
+                  <div key={modulo} className={styles.permissionGroup}>
+                    <h3>{modulo}</h3>
+
+                    <div className={styles.permissionList}>
+                      {permisos.map((permiso) => (
+                        <label
+                          key={permiso.permisoId}
+                          className={styles.permissionItem}
+                        >
+                          <div>
+                            <strong>{permiso.nombre}</strong>
+                            <span>{permiso.descripcion || permiso.codigo}</span>
+                          </div>
+
+                          <input
+                            type="checkbox"
+                            checked={permiso.asignado}
+                            onChange={() => void togglePermiso(permiso)}
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
 
             <div className={styles.modalFoot}>
               <Button
                 type="button"
-                onClick={() => {
-                  setPermissionsModalOpen(false);
-                  setSelectedRol(null);
-                  setRolPermisos([]);
-                }}
+                onClick={cerrarPermisos}
                 className={styles.primaryButton}
               >
                 Listo
@@ -526,6 +592,17 @@ export default function RolesPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmacion.open}
+        title={confirmacion.title}
+        message={confirmacion.message}
+        confirmText={confirmacion.confirmText}
+        variant={confirmacion.variant}
+        loading={confirmacion.loading}
+        onCancel={cerrarConfirmacion}
+        onConfirm={() => void confirmarAccion()}
+      />
     </section>
   );
 }

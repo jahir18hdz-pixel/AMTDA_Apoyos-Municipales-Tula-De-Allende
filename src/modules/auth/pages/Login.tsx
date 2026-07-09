@@ -12,11 +12,15 @@ import {
   resetPassword,
 } from "../../../services/authService";
 
+import { useToast } from "@/components/ui/toast/useToast";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
+
 type Mode = "login" | "forgot";
 type ForgotStep = "request" | "validate" | "change";
 
 export default function Login() {
   const navigate = useNavigate();
+  const toast = useToast();
 
   const [mode, setMode] = useState<Mode>("login");
   const [forgotStep, setForgotStep] = useState<ForgotStep>("request");
@@ -56,12 +60,13 @@ export default function Login() {
           rol: response.rol,
           subRol: response.subRol,
           permisos: response.permisos ?? [],
-        }),
+        })
       );
 
+      toast.success("Inicio de sesión correcto.");
       navigate("/dashboard", { replace: true });
-    } catch {
-      alert("Correo o contraseña incorrectos.");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -94,9 +99,10 @@ export default function Login() {
         correo: email,
       });
 
+      toast.success("Código de recuperación enviado correctamente.");
       setForgotStep("validate");
-    } catch {
-      alert("No se pudo enviar el código de recuperación.");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -104,6 +110,12 @@ export default function Login() {
 
   const handleValidateCode = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!code.trim()) {
+      toast.error("Ingresa el código de recuperación.");
+      return;
+    }
+
     setForgotStep("change");
   };
 
@@ -111,7 +123,7 @@ export default function Login() {
     e.preventDefault();
 
     if (newPassword !== confirmNewPassword) {
-      alert("Las contraseñas no coinciden.");
+      toast.error("Las contraseñas no coinciden.");
       return;
     }
 
@@ -123,10 +135,10 @@ export default function Login() {
         nuevoPassword: newPassword,
       });
 
-      alert("Contraseña actualizada correctamente.");
+      toast.success("Contraseña actualizada correctamente.");
       handleBackToLogin();
-    } catch {
-      alert("No se pudo cambiar la contraseña.");
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
