@@ -1,0 +1,1425 @@
+:root {
+  --vino: #4b0016;
+  --vino-light: #6b0020;
+  --vino-soft: #f8f0f2;
+  --gold: #b68a2a;
+  --gold-soft: #fdf8ee;
+  --surface: #ffffff;
+  --page: #f8f7f6;
+  --text: #21191c;
+  --muted: #81777a;
+  --border: rgba(75, 0, 22, 0.1);
+  --border-strong: rgba(75, 0, 22, 0.18);
+  --shadow: 0 12px 35px rgba(57, 23, 34, 0.06);
+}
+
+/* =========================================================
+   PÁGINA
+========================================================= */
+
+.page {
+  width: 100%;
+  min-width: 0;
+
+  height: calc(100dvh - 64px);
+  min-height: 0;
+
+  padding: 20px 22px 30px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+
+  background: var(--page);
+  color: var(--text);
+}
+
+.page {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(75, 0, 22, 0.45) rgba(75, 0, 22, 0.06);
+}
+
+.page::-webkit-scrollbar {
+  width: 10px;
+}
+
+.page::-webkit-scrollbar-track {
+  background: rgba(75, 0, 22, 0.05);
+  border-radius: 999px;
+}
+
+.page::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(75, 0, 22, 0.4);
+  background-clip: padding-box;
+}
+
+.page::-webkit-scrollbar-thumb:hover {
+  background: rgba(75, 0, 22, 0.6);
+  background-clip: padding-box;
+}
+
+/* =========================================================
+   SCROLL PERSONALIZADO
+========================================================= */
+
+.page * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(75, 0, 22, 0.35) rgba(75, 0, 22, 0.06);
+}
+
+.page *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.page *::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(75, 0, 22, 0.05);
+}
+
+.page *::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(75, 0, 22, 0.32);
+  background-clip: padding-box;
+}
+
+.page *::-webkit-scrollbar-thumb:hover {
+  background: rgba(75, 0, 22, 0.5);
+  background-clip: padding-box;
+}
+
+/* =========================================================
+   ENCABEZADO
+========================================================= */
+
+.header {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+
+.header > div:first-child {
+  min-width: 0;
+}
+
+.header h1 {
+  margin: 3px 0 5px;
+  color: var(--vino);
+  font-size: clamp(1.65rem, 2.4vw, 2.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.header p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.eyebrow,
+.cardEyebrow {
+  display: block;
+  color: var(--gold);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.yearControl {
+  min-width: 130px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--muted);
+  box-shadow: 0 4px 14px rgba(57, 23, 34, 0.03);
+}
+
+.yearControl span {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.yearControl select {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--vino);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.refreshButton,
+.linkButton,
+.rowButton,
+.errorBanner button {
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.refreshButton {
+  min-width: 112px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 15px;
+  border-radius: 11px;
+  background: var(--vino);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 750;
+  white-space: nowrap;
+  transition:
+    background 160ms ease,
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: var(--vino-light);
+  transform: translateY(-1px);
+}
+
+.refreshButton:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.refreshing,
+.spinner {
+  animation: spin 850ms linear infinite;
+}
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.errorBanner {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding: 13px 15px;
+  border: 1px solid rgba(174, 52, 52, 0.18);
+  border-radius: 12px;
+  background: #fff5f5;
+  color: #7c2525;
+}
+
+.errorBanner div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.errorBanner strong {
+  font-size: 0.86rem;
+}
+
+.errorBanner span {
+  font-size: 0.77rem;
+  line-height: 1.45;
+  opacity: 0.84;
+}
+
+.errorBanner button {
+  flex: 0 0 auto;
+  padding: 8px 11px;
+  border-radius: 8px;
+  background: #8e3030;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   KPIS
+========================================================= */
+
+.kpiGrid {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 13px;
+  margin-bottom: 13px;
+}
+
+.kpiCard {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 17px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--surface);
+  box-shadow: 0 5px 18px rgba(57, 23, 34, 0.035);
+}
+
+.kpiIcon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.kpiWine {
+  background: var(--vino-soft);
+  color: var(--vino);
+}
+
+.kpiGold {
+  background: var(--gold-soft);
+  color: #936c17;
+}
+
+.kpiGreen {
+  background: #edf8f2;
+  color: #237447;
+}
+
+.kpiOrange {
+  background: #fff4e8;
+  color: #b15b15;
+}
+
+.kpiContent {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.kpiContent > span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kpiContent > strong {
+  margin: 3px 0 6px;
+  overflow: hidden;
+  color: var(--text);
+  font-size: clamp(1.4rem, 2vw, 1.7rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-overflow: ellipsis;
+}
+
+.kpiContent small {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #75696d;
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
+.kpiContent small svg {
+  flex: 0 0 auto;
+}
+
+/* =========================================================
+   GRIDS
+========================================================= */
+
+.primaryGrid {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.75fr);
+  gap: 13px;
+  margin-bottom: 13px;
+}
+
+.secondaryGrid {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+  margin-bottom: 13px;
+}
+
+/* =========================================================
+   TARJETAS
+========================================================= */
+
+.card {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.monthlyCard,
+.distributionCard,
+.secondaryGrid > .card,
+.recentCard {
+  padding: 18px;
+}
+
+.cardHeader {
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 17px;
+}
+
+.cardHeader > div {
+  min-width: 0;
+}
+
+.cardHeader h2 {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 0.98rem;
+  line-height: 1.3;
+}
+
+.cardHeader > svg {
+  flex: 0 0 auto;
+  color: var(--gold);
+}
+
+.cardBadge {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border-radius: 7px;
+  background: var(--vino-soft);
+  color: var(--vino);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+/* =========================================================
+   GRÁFICA MENSUAL
+========================================================= */
+
+.chartLegend {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-bottom: 15px;
+}
+
+.chartLegend span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.67rem;
+  font-weight: 650;
+}
+
+.chartLegend i {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
+.monthlyChart {
+  width: 100%;
+  min-width: 650px;
+  height: 240px;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(32px, 1fr));
+  align-items: end;
+  gap: 7px;
+  padding: 10px 4px 0;
+  border-bottom: 1px solid var(--border);
+  background-image: linear-gradient(
+    to bottom,
+    transparent calc(25% - 1px),
+    rgba(75, 0, 22, 0.055) 25%,
+    transparent calc(25% + 1px),
+    transparent calc(50% - 1px),
+    rgba(75, 0, 22, 0.055) 50%,
+    transparent calc(50% + 1px),
+    transparent calc(75% - 1px),
+    rgba(75, 0, 22, 0.055) 75%,
+    transparent calc(75% + 1px)
+  );
+}
+
+.monthlyCard {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.monthlyCard .cardHeader,
+.monthlyCard .chartLegend {
+  min-width: 0;
+}
+
+.monthColumn {
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 7px;
+}
+
+.barArea {
+  width: 100%;
+  height: calc(100% - 24px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.barValue {
+  min-height: 16px;
+  margin-bottom: 3px;
+  color: var(--muted);
+  font-size: 0.61rem;
+  font-weight: 750;
+}
+
+.monthBar {
+  width: min(28px, 72%);
+  min-height: 2px;
+  display: flex;
+  flex-direction: column-reverse;
+  overflow: hidden;
+  border-radius: 6px 6px 2px 2px;
+  background: #e9e3e5;
+  transition: height 300ms ease;
+}
+
+.monthBar > span {
+  width: 100%;
+  min-height: 2px;
+}
+
+.monthLabel {
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+/* =========================================================
+   DONA
+========================================================= */
+
+.donutContent {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 21px;
+}
+
+.donut {
+  width: 145px;
+  height: 145px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.donutCenter {
+  width: 91px;
+  height: 91px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.donutCenter strong {
+  max-width: 80px;
+  overflow: hidden;
+  color: var(--vino);
+  font-size: 1.42rem;
+  line-height: 1;
+  text-overflow: ellipsis;
+}
+
+.donutCenter span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.65rem;
+}
+
+.distributionList {
+  width: 100%;
+  max-height: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+  overflow-y: auto;
+}
+
+.distributionItem {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.colorIndicator {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 3px;
+}
+
+.distributionItem div {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.distributionItem strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 0.73rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.distributionItem span:last-child {
+  color: var(--muted);
+  font-size: 0.65rem;
+}
+
+/* =========================================================
+   RANKINGS
+========================================================= */
+
+.rankingList {
+  width: 100%;
+  min-width: 0;
+  max-height: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 4px;
+  overflow-y: auto;
+}
+
+.rankingItem {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.rankingNumber {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--vino-soft);
+  color: var(--vino);
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.rankingData {
+  min-width: 0;
+  flex: 1;
+}
+
+.rankingHeader {
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.rankingHeader > div {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.rankingHeader > strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.73rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rankingHeader strong {
+  overflow: hidden;
+  font-size: 0.73rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rankingHeader span {
+  margin-top: 2px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.62rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rankingHeader b {
+  flex: 0 0 auto;
+  color: var(--vino);
+  font-size: 0.69rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eee9ea;
+}
+
+.progressTrack span {
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--vino), var(--gold));
+}
+
+/* =========================================================
+   ESTADOS
+========================================================= */
+
+.statusSummary {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.statusSummaryTotal {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--vino-soft), var(--gold-soft));
+}
+
+.statusSummaryTotal strong,
+.statusSummaryTotal span {
+  display: block;
+}
+
+.statusSummaryTotal strong {
+  overflow: hidden;
+  color: var(--vino);
+  font-size: 1.45rem;
+  line-height: 1;
+  text-overflow: ellipsis;
+}
+
+.statusSummaryTotal span {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.66rem;
+}
+
+.statusRow {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--border);
+}
+
+.statusRow:last-child {
+  border-bottom: 0;
+}
+
+.statusRow > div {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.statusRow p {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.statusRow strong {
+  overflow: hidden;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusRow small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.62rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusRow b {
+  flex: 0 0 auto;
+  font-size: 0.83rem;
+}
+
+.pendingDot,
+.validatedDot,
+.approvedDot {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
+.pendingDot {
+  background: #dc8d2b;
+}
+
+.validatedDot {
+  background: #3c79a5;
+}
+
+.approvedDot {
+  background: #2f8959;
+}
+
+/* =========================================================
+   TABLA
+========================================================= */
+
+.recentCard {
+  width: 100%;
+  min-width: 0;
+}
+
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 0;
+  background: transparent;
+  color: var(--vino);
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.linkButton:hover {
+  color: var(--gold);
+}
+
+.tableWrapper {
+  width: 100%;
+  max-height: 350px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table th,
+.table td {
+  padding: 12px 14px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 1px solid var(--border);
+  background: #fbf9f9;
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table td {
+  border-bottom: 1px solid var(--border);
+  color: #554b4e;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table tbody tr:hover {
+  background: #fdfafa;
+}
+
+.table th:last-child,
+.table td:last-child {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  background: #ffffff;
+  box-shadow: -8px 0 12px rgba(75, 0, 22, 0.035);
+}
+
+.table th:last-child {
+  z-index: 3;
+  background: #fbf9f9;
+}
+
+.table tbody tr:hover td:last-child {
+  background: #fdfafa;
+}
+
+.communityCell {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.communityCell > span {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--vino-soft);
+  color: var(--vino);
+}
+
+.communityCell strong {
+  max-width: 220px;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 75px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 0.63rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.statusApproved {
+  background: #e9f7ef;
+  color: #247248;
+}
+
+.statusValidated {
+  background: #ebf4fa;
+  color: #326b91;
+}
+
+.statusPending {
+  background: #fff4e5;
+  color: #a75c13;
+}
+
+.statusRejected {
+  background: #fdecec;
+  color: #a43c3c;
+}
+
+.rowButton {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  margin-left: auto;
+  border-radius: 8px;
+  background: var(--vino-soft);
+  color: var(--vino);
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.rowButton:hover {
+  background: var(--vino);
+  color: #ffffff;
+}
+
+/* =========================================================
+   ESTADOS VACÍOS Y CARGA
+========================================================= */
+
+.emptyState,
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.emptyState {
+  min-height: 175px;
+  padding: 20px;
+  color: var(--muted);
+}
+
+.emptyState svg {
+  flex: 0 0 auto;
+  margin-bottom: 9px;
+  color: #b8a8ad;
+}
+
+.emptyState strong {
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.emptyState span {
+  max-width: 280px;
+  margin-top: 3px;
+  font-size: 0.69rem;
+  line-height: 1.45;
+}
+
+.loadingState {
+  min-height: calc(100dvh - 150px);
+  padding: 20px;
+}
+
+.loadingState svg {
+  margin-bottom: 13px;
+  color: var(--vino);
+}
+
+.loadingState strong {
+  color: var(--vino);
+  font-size: 0.93rem;
+}
+
+.loadingState span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+/* =========================================================
+   ANIMACIONES
+========================================================= */
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   LAPTOPS Y PANTALLAS MEDIANAS
+========================================================= */
+
+@media (max-width: 1280px) {
+  .page {
+    padding-inline: 18px;
+  }
+
+  .kpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .primaryGrid {
+    grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+  }
+
+  .secondaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .secondaryGrid > article:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* =========================================================
+   TABLETS
+========================================================= */
+
+@media (max-width: 960px) {
+  .page {
+    padding: 17px;
+  }
+
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .headerActions {
+    width: 100%;
+  }
+
+  .yearControl,
+  .refreshButton {
+    flex: 1;
+  }
+
+  .primaryGrid,
+  .secondaryGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .secondaryGrid > article:last-child {
+    grid-column: auto;
+  }
+
+  .distributionCard {
+    min-height: auto;
+  }
+
+  .donutContent {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .donut {
+    width: 135px;
+    height: 135px;
+  }
+
+  .donutCenter {
+    width: 85px;
+    height: 85px;
+  }
+
+  .distributionList {
+    max-height: 180px;
+  }
+
+  .rankingList {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+/* =========================================================
+   MÓVILES GRANDES
+========================================================= */
+
+@media (max-width: 700px) {
+  .page {
+    padding: 14px;
+  }
+
+  .header {
+    margin-bottom: 15px;
+  }
+
+  .header h1 {
+    font-size: 1.65rem;
+  }
+
+  .header p {
+    font-size: 0.82rem;
+  }
+
+  .headerActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .yearControl,
+  .refreshButton {
+    width: 100%;
+    flex: none;
+  }
+
+  .kpiGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .kpiCard {
+    align-items: center;
+    padding: 14px;
+  }
+
+  .primaryGrid,
+  .secondaryGrid {
+    gap: 10px;
+  }
+
+  .monthlyCard,
+  .distributionCard,
+  .secondaryGrid > .card,
+  .recentCard {
+    padding: 15px;
+  }
+
+  .cardHeader {
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .cardHeader h2 {
+    font-size: 0.9rem;
+  }
+
+  .donutContent {
+    flex-direction: column;
+  }
+
+  .distributionList {
+    max-height: 210px;
+  }
+
+  .rankingHeader {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .rankingHeader b {
+    text-align: left;
+  }
+
+  .errorBanner {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .errorBanner button {
+    width: 100%;
+  }
+
+  .tableWrapper {
+    max-height: 320px;
+  }
+}
+
+/* =========================================================
+   MÓVILES PEQUEÑOS
+========================================================= */
+
+@media (max-width: 480px) {
+  .page {
+    padding: 11px;
+  }
+
+  .header h1 {
+    font-size: 1.45rem;
+  }
+
+  .eyebrow,
+  .cardEyebrow {
+    font-size: 0.61rem;
+  }
+
+  .kpiCard {
+    gap: 11px;
+    padding: 13px;
+    border-radius: 13px;
+  }
+
+  .kpiIcon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .kpiContent > strong {
+    font-size: 1.35rem;
+  }
+
+  .kpiContent small {
+    align-items: flex-start;
+    font-size: 0.66rem;
+  }
+
+  .card {
+    border-radius: 13px;
+  }
+
+  .monthlyCard,
+  .distributionCard,
+  .secondaryGrid > .card,
+  .recentCard {
+    padding: 13px;
+  }
+
+  .cardHeader {
+    align-items: flex-start;
+  }
+
+  .cardBadge {
+    padding: 4px 7px;
+    font-size: 0.66rem;
+  }
+
+  .monthlyChart {
+    min-width: 620px;
+    height: 220px;
+  }
+
+  .donut {
+    width: 125px;
+    height: 125px;
+  }
+
+  .donutCenter {
+    width: 78px;
+    height: 78px;
+  }
+
+  .donutCenter strong {
+    font-size: 1.2rem;
+  }
+
+  .rankingNumber {
+    width: 23px;
+    height: 23px;
+  }
+
+  .statusRow {
+    gap: 8px;
+  }
+
+  .statusRow small {
+    white-space: normal;
+  }
+
+  .recentCard .cardHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .linkButton {
+    align-self: flex-end;
+  }
+
+  .table {
+    min-width: 700px;
+  }
+
+  .communityCell strong {
+    max-width: 160px;
+  }
+
+  .emptyState {
+    min-height: 150px;
+  }
+}
+
+/* =========================================================
+   PANTALLAS MUY PEQUEÑAS
+========================================================= */
+
+@media (max-width: 360px) {
+  .page {
+    padding: 9px;
+  }
+
+  .kpiCard {
+    align-items: flex-start;
+  }
+
+  .kpiContent > span {
+    white-space: normal;
+  }
+
+  .yearControl,
+  .refreshButton {
+    height: 40px;
+  }
+
+  .rankingHeader > strong,
+  .rankingHeader strong,
+  .rankingHeader span {
+    white-space: normal;
+  }
+
+  .statusRow {
+    align-items: flex-start;
+  }
+}

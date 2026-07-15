@@ -3,6 +3,7 @@ import {
   FiDownload,
   FiEdit2,
   FiEye,
+  FiFileText,
   FiMapPin,
   FiPlus,
   FiSearch,
@@ -12,7 +13,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { ConfirmModal } from "../../components/ui/confirm-modal/ConfirmModal";
 import { comunidadService } from "@/services/comunidad.service";
-import type { Comunidad, CrearComunidadRequest } from "@/types/comunidad.types";
+import { reporteService } from "@/services/reporte.service";
+import type {
+  Comunidad,
+  CrearComunidadRequest,
+} from "@/types/comunidad.types";
 import { useToast } from "@/components/ui/toast/useToast";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import styles from "./componentes/comunidadesPage.module.css";
@@ -85,14 +90,31 @@ function getItems<T>(data: BackendPaginatedResult<T>) {
   return data.Items ?? data.items ?? [];
 }
 
-function getPaginationMeta<T>(data: BackendPaginatedResult<T>): PaginationMeta {
+function getPaginationMeta<T>(
+  data: BackendPaginatedResult<T>,
+): PaginationMeta {
   return {
     pageNumber: data.PageNumber ?? data.pageNumber ?? 1,
-    pageSize: data.PageSize ?? data.pageSize ?? REGISTROS_POR_PAGINA,
-    totalRecords: data.TotalRecords ?? data.totalRecords ?? 0,
-    totalPages: data.TotalPages ?? data.totalPages ?? 1,
-    hasPreviousPage: data.HasPreviousPage ?? data.hasPreviousPage ?? false,
-    hasNextPage: data.HasNextPage ?? data.hasNextPage ?? false,
+    pageSize:
+      data.PageSize ??
+      data.pageSize ??
+      REGISTROS_POR_PAGINA,
+    totalRecords:
+      data.TotalRecords ??
+      data.totalRecords ??
+      0,
+    totalPages:
+      data.TotalPages ??
+      data.totalPages ??
+      1,
+    hasPreviousPage:
+      data.HasPreviousPage ??
+      data.hasPreviousPage ??
+      false,
+    hasNextPage:
+      data.HasNextPage ??
+      data.hasNextPage ??
+      false,
   };
 }
 
@@ -107,11 +129,16 @@ function getUserPermissions() {
       permissions?: Permiso[];
     };
 
-    const permisosRaw = user.permisos ?? user.permissions ?? [];
+    const permisosRaw =
+      user.permisos ??
+      user.permissions ??
+      [];
 
     return permisosRaw
       .map((permiso) =>
-        typeof permiso === "string" ? permiso : permiso.permiso
+        typeof permiso === "string"
+          ? permiso
+          : permiso.permiso,
       )
       .filter(Boolean);
   } catch {
@@ -122,53 +149,131 @@ function getUserPermissions() {
 function capitalizeWords(value: string) {
   return value
     .toLowerCase()
-    .replace(/\b\p{L}/gu, (letter) => letter.toUpperCase());
+    .replace(
+      /\b\p{L}/gu,
+      (letter) => letter.toUpperCase(),
+    );
 }
 
-function onlyNumbers(value: string, maxLength: number) {
-  return value.replace(/\D/g, "").slice(0, maxLength);
+function onlyNumbers(
+  value: string,
+  maxLength: number,
+) {
+  return value
+    .replace(/\D/g, "")
+    .slice(0, maxLength);
 }
 
 export default function ComunidadesPage() {
   const toast = useToast();
-  const permissions = useMemo(() => getUserPermissions(), []);
 
-  const hasPermission = useCallback(
-    (permission: string) => permissions.includes(permission),
-    [permissions]
+  const permissions = useMemo(
+    () => getUserPermissions(),
+    [],
   );
 
-  const canCreate = hasPermission("comunidades.create");
-  const canEdit = hasPermission("comunidades.edit");
-  const canChangeStatus = hasPermission("comunidades.status");
-  const canViewIne = hasPermission("comunidades.ine.view");
-  const canDownloadIne = hasPermission("comunidades.ine.download");
-  const canExport = hasPermission("comunidades.export");
+  const hasPermission = useCallback(
+    (permission: string) =>
+      permissions.includes(permission),
+    [permissions],
+  );
 
-  const [comunidades, setComunidades] = useState<Comunidad[]>([]);
-  const [form, setForm] = useState<CrearComunidadRequest>(initialForm);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const canCreate = hasPermission(
+    "comunidades.create",
+  );
+
+  const canEdit = hasPermission(
+    "comunidades.edit",
+  );
+
+  const canChangeStatus = hasPermission(
+    "comunidades.status",
+  );
+
+  const canViewIne = hasPermission(
+    "comunidades.ine.view",
+  );
+
+  const canDownloadIne = hasPermission(
+    "comunidades.ine.download",
+  );
+
+  const canExport = hasPermission(
+    "comunidades.export",
+  );
+
+  const [comunidades, setComunidades] =
+    useState<Comunidad[]>([]);
+
+  const [form, setForm] =
+    useState<CrearComunidadRequest>(
+      initialForm,
+    );
+
+  const [editingId, setEditingId] =
+    useState<string | null>(null);
 
   const [query, setQuery] = useState("");
-  const [mostrarActivas, setMostrarActivas] = useState(true);
-  const [paginaActual, setPaginaActual] = useState(1);
+
+  const [mostrarActivas, setMostrarActivas] =
+    useState(true);
+
+  const [paginaActual, setPaginaActual] =
+    useState(1);
+
   const [pagination, setPagination] =
-    useState<PaginationMeta>(initialPagination);
+    useState<PaginationMeta>(
+      initialPagination,
+    );
 
-  const [totalActivas, setTotalActivas] = useState(0);
-  const [totalInactivas, setTotalInactivas] = useState(0);
+  const [totalActivas, setTotalActivas] =
+    useState(0);
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [ineModalOpen, setIneModalOpen] = useState(false);
+  const [totalInactivas, setTotalInactivas] =
+    useState(0);
 
-  const [selectedFileName, setSelectedFileName] = useState("");
-  const [selectedIne, setSelectedIne] = useState<string | null>(null);
-  const [selectedCommunityName, setSelectedCommunityName] = useState("");
-  const [selectedDelegado, setSelectedDelegado] = useState("");
+  const [modalOpen, setModalOpen] =
+    useState(false);
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [confirmacion, setConfirmacion] = useState(initialConfirmacion);
+  const [ineModalOpen, setIneModalOpen] =
+    useState(false);
+
+  const [
+    selectedFileName,
+    setSelectedFileName,
+  ] = useState("");
+
+  const [selectedIne, setSelectedIne] =
+    useState<string | null>(null);
+
+  const [
+    selectedCommunityName,
+    setSelectedCommunityName,
+  ] = useState("");
+
+  const [
+    selectedDelegado,
+    setSelectedDelegado,
+  ] = useState("");
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [
+    generandoReporteGeneral,
+    setGenerandoReporteGeneral,
+  ] = useState(false);
+
+  const [
+    generandoReporteComunidadId,
+    setGenerandoReporteComunidadId,
+  ] = useState<string | null>(null);
+
+  const [confirmacion, setConfirmacion] =
+    useState(initialConfirmacion);
 
   const cargarComunidades = useCallback(
     async (page: number) => {
@@ -176,28 +281,57 @@ export default function ComunidadesPage() {
         setLoading(true);
 
         const request = mostrarActivas
-          ? comunidadService.obtenerTodas(page, REGISTROS_POR_PAGINA)
-          : comunidadService.obtenerInactivas(page, REGISTROS_POR_PAGINA);
+          ? comunidadService.obtenerTodas(
+              page,
+              REGISTROS_POR_PAGINA,
+            )
+          : comunidadService.obtenerInactivas(
+              page,
+              REGISTROS_POR_PAGINA,
+            );
 
-        const [mainResponse, activasResponse, inactivasResponse] =
-          await Promise.all([
-            request,
-            comunidadService.obtenerTodas(1, 1),
-            comunidadService.obtenerInactivas(1, 1),
-          ]);
+        const [
+          mainResponse,
+          activasResponse,
+          inactivasResponse,
+        ] = await Promise.all([
+          request,
+          comunidadService.obtenerTodas(1, 1),
+          comunidadService.obtenerInactivas(
+            1,
+            1,
+          ),
+        ]);
 
-        const mainData = mainResponse.data as BackendPaginatedResult<Comunidad>;
+        const mainData =
+          mainResponse.data as BackendPaginatedResult<Comunidad>;
+
         const activasData =
           activasResponse.data as BackendPaginatedResult<Comunidad>;
+
         const inactivasData =
           inactivasResponse.data as BackendPaginatedResult<Comunidad>;
 
         setComunidades(getItems(mainData));
-        setPagination(getPaginationMeta(mainData));
-        setTotalActivas(getPaginationMeta(activasData).totalRecords);
-        setTotalInactivas(getPaginationMeta(inactivasData).totalRecords);
+
+        setPagination(
+          getPaginationMeta(mainData),
+        );
+
+        setTotalActivas(
+          getPaginationMeta(activasData)
+            .totalRecords,
+        );
+
+        setTotalInactivas(
+          getPaginationMeta(inactivasData)
+            .totalRecords,
+        );
       } catch (error) {
-        toast.error(getApiErrorMessage(error));
+        toast.error(
+          getApiErrorMessage(error),
+        );
+
         setComunidades([]);
         setPagination(initialPagination);
         setTotalActivas(0);
@@ -206,39 +340,67 @@ export default function ComunidadesPage() {
         setLoading(false);
       }
     },
-    [mostrarActivas, toast]
+    [mostrarActivas, toast],
   );
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void cargarComunidades(paginaActual);
-    }, 0);
+    const timeoutId =
+      window.setTimeout(() => {
+        void cargarComunidades(
+          paginaActual,
+        );
+      }, 0);
 
-    return () => window.clearTimeout(timeoutId);
+    return () =>
+      window.clearTimeout(timeoutId);
   }, [cargarComunidades, paginaActual]);
 
-  const comunidadesFiltradas = useMemo(() => {
-    const value = query.toLowerCase().trim();
+  const comunidadesFiltradas =
+    useMemo(() => {
+      const value = query
+        .toLowerCase()
+        .trim();
 
-    if (!value) return comunidades;
+      if (!value) return comunidades;
 
-    return comunidades.filter((comunidad) => {
-      return (
-        comunidad.nombre.toLowerCase().includes(value) ||
-        comunidad.claveInterna.toLowerCase().includes(value) ||
-        comunidad.delegado?.toLowerCase().includes(value)
+      return comunidades.filter(
+        (comunidad) => {
+          return (
+            comunidad.nombre
+              .toLowerCase()
+              .includes(value) ||
+            comunidad.claveInterna
+              .toLowerCase()
+              .includes(value) ||
+            comunidad.delegado
+              ?.toLowerCase()
+              .includes(value)
+          );
+        },
       );
-    });
-  }, [comunidades, query]);
+    }, [comunidades, query]);
 
-  const totalComunidades = totalActivas + totalInactivas;
-  const paginaSegura = pagination.pageNumber;
-  const totalPaginas = pagination.totalPages;
-  const showActions = canViewIne || canEdit || canChangeStatus;
+  const totalComunidades =
+    totalActivas + totalInactivas;
+
+  const paginaSegura =
+    pagination.pageNumber;
+
+  const totalPaginas =
+    pagination.totalPages;
+
+  const showActions =
+    canViewIne ||
+    canEdit ||
+    canChangeStatus ||
+    canExport;
 
   function cerrarConfirmacion() {
     if (confirmacion.loading) return;
-    setConfirmacion(initialConfirmacion);
+
+    setConfirmacion(
+      initialConfirmacion,
+    );
   }
 
   async function confirmarAccion() {
@@ -252,7 +414,9 @@ export default function ComunidadesPage() {
 
       await confirmacion.action();
 
-      setConfirmacion(initialConfirmacion);
+      setConfirmacion(
+        initialConfirmacion,
+      );
     } catch {
       setConfirmacion((prev) => ({
         ...prev,
@@ -267,18 +431,26 @@ export default function ComunidadesPage() {
     setQuery("");
   }
 
-  function openModal(comunidad?: Comunidad) {
+  function openModal(
+    comunidad?: Comunidad,
+  ) {
     if (comunidad && !canEdit) return;
     if (!comunidad && !canCreate) return;
 
     if (comunidad) {
       setEditingId(comunidad.id);
+
       setForm({
-        claveInterna: comunidad.claveInterna,
+        claveInterna:
+          comunidad.claveInterna,
         nombre: comunidad.nombre,
-        codigoPostal: comunidad.codigoPostal,
-        delegado: comunidad.delegado ?? "",
-        telefonoDelegado: comunidad.telefonoDelegado ?? "",
+        codigoPostal:
+          comunidad.codigoPostal,
+        delegado:
+          comunidad.delegado ?? "",
+        telefonoDelegado:
+          comunidad.telefonoDelegado ??
+          "",
         delegadoIne: null,
       });
     } else {
@@ -297,37 +469,63 @@ export default function ComunidadesPage() {
     setSelectedFileName("");
   }
 
-  function handleTextChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const { name, value, files } = event.target;
+  function handleTextChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const {
+      name,
+      value,
+      files,
+    } = event.target;
 
     if (name === "delegadoIne") {
-      const file = files?.[0] ?? null;
+      const file =
+        files?.[0] ?? null;
 
       setForm((prev) => ({
         ...prev,
         delegadoIne: file,
       }));
 
-      setSelectedFileName(file?.name ?? "");
+      setSelectedFileName(
+        file?.name ?? "",
+      );
+
       return;
     }
 
     let formattedValue = value;
 
-    if (name === "nombre" || name === "delegado") {
-      formattedValue = capitalizeWords(value);
+    if (
+      name === "nombre" ||
+      name === "delegado"
+    ) {
+      formattedValue =
+        capitalizeWords(value);
     }
 
     if (name === "codigoPostal") {
-      formattedValue = onlyNumbers(value, 5);
+      formattedValue = onlyNumbers(
+        value,
+        5,
+      );
     }
 
-    if (name === "telefonoDelegado") {
-      formattedValue = onlyNumbers(value, 10);
+    if (
+      name ===
+      "telefonoDelegado"
+    ) {
+      formattedValue = onlyNumbers(
+        value,
+        10,
+      );
     }
 
-    if (name === "claveInterna") {
-      formattedValue = value.toUpperCase();
+    if (
+      name === "claveInterna"
+    ) {
+      formattedValue =
+        value.toUpperCase();
     }
 
     setForm((prev) => ({
@@ -336,19 +534,33 @@ export default function ComunidadesPage() {
     }));
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
 
     if (editingId && !canEdit) return;
     if (!editingId && !canCreate) return;
 
-    if (form.codigoPostal.length !== 5) {
-      toast.error("El código postal debe tener 5 dígitos.");
+    if (
+      form.codigoPostal.length !== 5
+    ) {
+      toast.error(
+        "El código postal debe tener 5 dígitos.",
+      );
+
       return;
     }
 
-    if (form.telefonoDelegado && form.telefonoDelegado.length !== 10) {
-      toast.error("El teléfono del delegado debe tener 10 dígitos.");
+    if (
+      form.telefonoDelegado &&
+      form.telefonoDelegado.length !==
+        10
+    ) {
+      toast.error(
+        "El teléfono del delegado debe tener 10 dígitos.",
+      );
+
       return;
     }
 
@@ -356,112 +568,258 @@ export default function ComunidadesPage() {
       setSaving(true);
 
       if (editingId) {
-        await comunidadService.actualizar(editingId, {
-          claveInterna: form.claveInterna,
-          nombre: form.nombre,
-          codigoPostal: form.codigoPostal,
-          delegado: form.delegado,
-          telefonoDelegado: form.telefonoDelegado,
-        });
+        await comunidadService.actualizar(
+          editingId,
+          {
+            claveInterna:
+              form.claveInterna,
+            nombre: form.nombre,
+            codigoPostal:
+              form.codigoPostal,
+            delegado: form.delegado,
+            telefonoDelegado:
+              form.telefonoDelegado,
+          },
+        );
 
         if (form.delegadoIne) {
-          await comunidadService.actualizarIne(editingId, form.delegadoIne);
+          await comunidadService.actualizarIne(
+            editingId,
+            form.delegadoIne,
+          );
         }
 
-        toast.success("Comunidad actualizada correctamente.");
+        toast.success(
+          "Comunidad actualizada correctamente.",
+        );
       } else {
-        await comunidadService.crear(form);
-        toast.success("Comunidad creada correctamente.");
+        await comunidadService.crear(
+          form,
+        );
+
+        toast.success(
+          "Comunidad creada correctamente.",
+        );
       }
 
       closeModal();
-      await cargarComunidades(paginaActual);
+
+      await cargarComunidades(
+        paginaActual,
+      );
     } catch (error) {
-      toast.error(getApiErrorMessage(error));
+      toast.error(
+        getApiErrorMessage(error),
+      );
     } finally {
       setSaving(false);
     }
   }
 
-  async function cambiarEstatus(comunidad: Comunidad) {
+  async function cambiarEstatus(
+    comunidad: Comunidad,
+  ) {
     if (!canChangeStatus) return;
 
     try {
-      await comunidadService.cambiarEstatus(comunidad.id, !comunidad.activo);
+      await comunidadService.cambiarEstatus(
+        comunidad.id,
+        !comunidad.activo,
+      );
 
-      const debeRegresarPagina = comunidades.length === 1 && paginaActual > 1;
+      const debeRegresarPagina =
+        comunidades.length === 1 &&
+        paginaActual > 1;
 
       if (debeRegresarPagina) {
-        setPaginaActual((prev) => prev - 1);
+        setPaginaActual(
+          (prev) => prev - 1,
+        );
       } else {
-        await cargarComunidades(paginaActual);
+        await cargarComunidades(
+          paginaActual,
+        );
       }
 
       toast.success(
         comunidad.activo
           ? "Comunidad desactivada correctamente."
-          : "Comunidad activada correctamente."
+          : "Comunidad activada correctamente.",
       );
     } catch (error) {
-      toast.error(getApiErrorMessage(error));
+      toast.error(
+        getApiErrorMessage(error),
+      );
+
       throw error;
     }
   }
 
-  function pedirCambioEstatus(comunidad: Comunidad) {
+  function pedirCambioEstatus(
+    comunidad: Comunidad,
+  ) {
     setConfirmacion({
       open: true,
-      title: comunidad.activo ? "Desactivar comunidad" : "Activar comunidad",
+      title: comunidad.activo
+        ? "Desactivar comunidad"
+        : "Activar comunidad",
       message: `¿Seguro que deseas ${
-        comunidad.activo ? "desactivar" : "activar"
+        comunidad.activo
+          ? "desactivar"
+          : "activar"
       } la comunidad "${comunidad.nombre}"?`,
-      confirmText: comunidad.activo ? "Desactivar" : "Activar",
-      variant: comunidad.activo ? "danger" : "success",
+      confirmText: comunidad.activo
+        ? "Desactivar"
+        : "Activar",
+      variant: comunidad.activo
+        ? "danger"
+        : "success",
       loading: false,
-      action: () => cambiarEstatus(comunidad),
+      action: () =>
+        cambiarEstatus(comunidad),
     });
   }
 
-  function verIne(comunidad: Comunidad) {
+  function verIne(
+    comunidad: Comunidad,
+  ) {
     if (!canViewIne) return;
 
-    setSelectedCommunityName(comunidad.nombre);
-    setSelectedDelegado(comunidad.delegado ?? "");
-    setSelectedIne(comunidad.delegadoIneUrl);
+    setSelectedCommunityName(
+      comunidad.nombre,
+    );
+
+    setSelectedDelegado(
+      comunidad.delegado ?? "",
+    );
+
+    setSelectedIne(
+      comunidad.delegadoIneUrl,
+    );
+
     setIneModalOpen(true);
+  }
+
+  async function descargarReporteGeneral() {
+    if (
+      !canExport ||
+      generandoReporteGeneral
+    ) {
+      return;
+    }
+
+    try {
+      setGenerandoReporteGeneral(true);
+
+      await reporteService.descargarReporteAnual(
+        {},
+      );
+
+      toast.success(
+        "Reporte general descargado correctamente.",
+      );
+    } catch (error) {
+      toast.error(
+        getApiErrorMessage(error),
+      );
+    } finally {
+      setGenerandoReporteGeneral(
+        false,
+      );
+    }
+  }
+
+  async function descargarReporteComunidad(
+    comunidad: Comunidad,
+  ) {
+    if (
+      !canExport ||
+      generandoReporteComunidadId
+    ) {
+      return;
+    }
+
+    try {
+      setGenerandoReporteComunidadId(
+        comunidad.id,
+      );
+
+      await reporteService.descargarReportePorComunidad(
+        comunidad.id,
+        {},
+      );
+
+      toast.success(
+        `Reporte de ${comunidad.nombre} descargado correctamente.`,
+      );
+    } catch (error) {
+      toast.error(
+        getApiErrorMessage(error),
+      );
+    } finally {
+      setGenerandoReporteComunidadId(
+        null,
+      );
+    }
   }
 
   return (
     <section className={styles.page}>
       <section className={styles.panel}>
         <div className={styles.toolbar}>
-          <div className={styles.searchBox}>
+          <div
+            className={styles.searchBox}
+          >
             <FiSearch />
+
             <input
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(event) =>
+                setQuery(
+                  event.target.value,
+                )
+              }
               placeholder="Buscar comunidad, clave o delegado..."
             />
           </div>
 
-          <div className={styles.toolbarActions}>
+          <div
+            className={
+              styles.toolbarActions
+            }
+          >
             {canExport && (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className={styles.secondaryButton}
+                className={
+                  styles.secondaryButton
+                }
+                disabled={
+                  generandoReporteGeneral
+                }
+                onClick={() =>
+                  void descargarReporteGeneral()
+                }
               >
                 <FiDownload />
-                Exportar PDF
+
+                {generandoReporteGeneral
+                  ? "Generando..."
+                  : "Reporte general"}
               </Button>
             )}
 
             {canCreate && (
               <Button
                 type="button"
-                onClick={() => openModal()}
-                className={styles.primaryButton}
+                onClick={() =>
+                  openModal()
+                }
+                className={
+                  styles.primaryButton
+                }
               >
                 <FiPlus />
                 Nueva comunidad
@@ -471,25 +829,42 @@ export default function ComunidadesPage() {
         </div>
 
         <div className={styles.stats}>
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>
+          <div
+            className={
+              styles.statCard
+            }
+          >
+            <div
+              className={
+                styles.statIcon
+              }
+            >
               <FiMapPin />
             </div>
 
             <div>
-              <span>Total comunidades</span>
-              <strong>{totalComunidades}</strong>
+              <span>
+                Total comunidades
+              </span>
+
+              <strong>
+                {totalComunidades}
+              </strong>
             </div>
           </div>
 
           <button
             type="button"
             className={`${styles.statCard} ${styles.statusFilterCard}`}
-            onClick={toggleFiltroActivas}
+            onClick={
+              toggleFiltroActivas
+            }
           >
             <div
               className={
-                mostrarActivas ? styles.statIconGreen : styles.statIconGold
+                mostrarActivas
+                  ? styles.statIconGreen
+                  : styles.statIconGold
               }
             >
               <FiMapPin />
@@ -501,17 +876,32 @@ export default function ComunidadesPage() {
                   ? "Comunidades activas"
                   : "Comunidades inactivas"}
               </span>
-              <strong>{mostrarActivas ? totalActivas : totalInactivas}</strong>
+
+              <strong>
+                {mostrarActivas
+                  ? totalActivas
+                  : totalInactivas}
+              </strong>
             </div>
           </button>
         </div>
 
-        <p className={styles.scrollHint}>
-          Desliza la tabla hacia la derecha para ver más información.
+        <p
+          className={
+            styles.scrollHint
+          }
+        >
+          Desliza la tabla hacia la
+          derecha para ver más
+          información.
         </p>
 
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
+        <div
+          className={styles.tableWrap}
+        >
+          <table
+            className={styles.table}
+          >
             <thead>
               <tr>
                 <th>Comunidad</th>
@@ -520,124 +910,277 @@ export default function ComunidadesPage() {
                 <th>Delegado</th>
                 <th>Teléfono</th>
                 <th>Estatus</th>
-                {showActions && <th>Acciones</th>}
+
+                {showActions && (
+                  <th>Acciones</th>
+                )}
               </tr>
             </thead>
 
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={showActions ? 7 : 6} className={styles.empty}>
+                  <td
+                    colSpan={
+                      showActions
+                        ? 7
+                        : 6
+                    }
+                    className={
+                      styles.empty
+                    }
+                  >
                     Cargando comunidades...
                   </td>
                 </tr>
-              ) : comunidadesFiltradas.length === 0 ? (
+              ) : comunidadesFiltradas.length ===
+                0 ? (
                 <tr>
-                  <td colSpan={showActions ? 7 : 6} className={styles.empty}>
-                    No se encontraron comunidades.
+                  <td
+                    colSpan={
+                      showActions
+                        ? 7
+                        : 6
+                    }
+                    className={
+                      styles.empty
+                    }
+                  >
+                    No se encontraron
+                    comunidades.
                   </td>
                 </tr>
               ) : (
-                comunidadesFiltradas.map((comunidad) => (
-                  <tr key={comunidad.id}>
-                    <td>
-                      <strong>{comunidad.nombre}</strong>
-                    </td>
-
-                    <td>
-                      <span className={styles.chip}>
-                        {comunidad.claveInterna}
-                      </span>
-                    </td>
-
-                    <td>{comunidad.codigoPostal}</td>
-
-                    <td>
-                      {comunidad.delegado || (
-                        <span className={styles.muted}>Sin asignar</span>
-                      )}
-                    </td>
-
-                    <td>{comunidad.telefonoDelegado || "—"}</td>
-
-                    <td>
-                      {comunidad.activo ? (
-                        <span className={styles.active}>Activa</span>
-                      ) : (
-                        <span className={styles.inactive}>Inactiva</span>
-                      )}
-                    </td>
-
-                    {showActions && (
+                comunidadesFiltradas.map(
+                  (comunidad) => (
+                    <tr
+                      key={
+                        comunidad.id
+                      }
+                    >
                       <td>
-                        <div className={styles.actions}>
-                          {canViewIne && (
-                            <button
-                              type="button"
-                              className={styles.actionView}
-                              title="Ver INE"
-                              onClick={() => verIne(comunidad)}
-                            >
-                              <FiEye />
-                            </button>
-                          )}
-
-                          {canEdit && (
-                            <button
-                              type="button"
-                              className={styles.actionEdit}
-                              title="Editar"
-                              onClick={() => openModal(comunidad)}
-                            >
-                              <FiEdit2 />
-                            </button>
-                          )}
-
-                          {canChangeStatus && (
-                            <label
-                              className={styles.statusSwitch}
-                              title={
-                                comunidad.activo ? "Desactivar" : "Activar"
-                              }
-                            >
-                              <input
-                                type="checkbox"
-                                checked={comunidad.activo}
-                                onChange={() => pedirCambioEstatus(comunidad)}
-                              />
-                              <span />
-                            </label>
-                          )}
-                        </div>
+                        <strong>
+                          {
+                            comunidad.nombre
+                          }
+                        </strong>
                       </td>
-                    )}
-                  </tr>
-                ))
+
+                      <td>
+                        <span
+                          className={
+                            styles.chip
+                          }
+                        >
+                          {
+                            comunidad.claveInterna
+                          }
+                        </span>
+                      </td>
+
+                      <td>
+                        {
+                          comunidad.codigoPostal
+                        }
+                      </td>
+
+                      <td>
+                        {comunidad.delegado || (
+                          <span
+                            className={
+                              styles.muted
+                            }
+                          >
+                            Sin asignar
+                          </span>
+                        )}
+                      </td>
+
+                      <td>
+                        {comunidad.telefonoDelegado ||
+                          "—"}
+                      </td>
+
+                      <td>
+                        {comunidad.activo ? (
+                          <span
+                            className={
+                              styles.active
+                            }
+                          >
+                            Activa
+                          </span>
+                        ) : (
+                          <span
+                            className={
+                              styles.inactive
+                            }
+                          >
+                            Inactiva
+                          </span>
+                        )}
+                      </td>
+
+                      {showActions && (
+                        <td>
+                          <div
+                            className={
+                              styles.actions
+                            }
+                          >
+                            {canViewIne && (
+                              <button
+                                type="button"
+                                className={
+                                  styles.actionView
+                                }
+                                title="Ver INE"
+                                onClick={() =>
+                                  verIne(
+                                    comunidad,
+                                  )
+                                }
+                              >
+                                <FiEye />
+                              </button>
+                            )}
+
+                            {canExport && (
+                              <button
+                                type="button"
+                                className={
+                                  styles.actionReport
+                                }
+                                title={`Descargar reporte de ${comunidad.nombre}`}
+                                disabled={
+                                  generandoReporteComunidadId ===
+                                  comunidad.id
+                                }
+                                onClick={() =>
+                                  void descargarReporteComunidad(
+                                    comunidad,
+                                  )
+                                }
+                              >
+                                {generandoReporteComunidadId ===
+                                comunidad.id ? (
+                                  <span
+                                    className={
+                                      styles.actionLoader
+                                    }
+                                  />
+                                ) : (
+                                  <FiFileText />
+                                )}
+                              </button>
+                            )}
+
+                            {canEdit && (
+                              <button
+                                type="button"
+                                className={
+                                  styles.actionEdit
+                                }
+                                title="Editar"
+                                onClick={() =>
+                                  openModal(
+                                    comunidad,
+                                  )
+                                }
+                              >
+                                <FiEdit2 />
+                              </button>
+                            )}
+
+                            {canChangeStatus && (
+                              <label
+                                className={
+                                  styles.statusSwitch
+                                }
+                                title={
+                                  comunidad.activo
+                                    ? "Desactivar"
+                                    : "Activar"
+                                }
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={
+                                    comunidad.activo
+                                  }
+                                  onChange={() =>
+                                    pedirCambioEstatus(
+                                      comunidad,
+                                    )
+                                  }
+                                />
+
+                                <span />
+                              </label>
+                            )}
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ),
+                )
               )}
             </tbody>
           </table>
         </div>
 
-        <footer className={styles.pagination}>
+        <footer
+          className={
+            styles.pagination
+          }
+        >
           <span>
-            Página {pagination.totalRecords === 0 ? 0 : paginaSegura} de{" "}
-            {pagination.totalRecords === 0 ? 0 : totalPaginas} ·{" "}
-            {pagination.totalRecords} registros
+            Página{" "}
+            {pagination.totalRecords ===
+            0
+              ? 0
+              : paginaSegura}{" "}
+            de{" "}
+            {pagination.totalRecords ===
+            0
+              ? 0
+              : totalPaginas}{" "}
+            · {pagination.totalRecords}{" "}
+            registros
           </span>
 
           <div>
             <button
               type="button"
-              disabled={loading || !pagination.hasPreviousPage}
-              onClick={() => setPaginaActual((prev) => Math.max(prev - 1, 1))}
+              disabled={
+                loading ||
+                !pagination.hasPreviousPage
+              }
+              onClick={() =>
+                setPaginaActual(
+                  (prev) =>
+                    Math.max(
+                      prev - 1,
+                      1,
+                    ),
+                )
+              }
             >
               Anterior
             </button>
 
             <button
               type="button"
-              disabled={loading || !pagination.hasNextPage}
-              onClick={() => setPaginaActual((prev) => prev + 1)}
+              disabled={
+                loading ||
+                !pagination.hasNextPage
+              }
+              onClick={() =>
+                setPaginaActual(
+                  (prev) =>
+                    prev + 1,
+                )
+              }
             >
               Siguiente
             </button>
@@ -646,15 +1189,33 @@ export default function ComunidadesPage() {
       </section>
 
       {modalOpen && (
-        <div className={styles.modalBg}>
-          <form className={styles.modal} onSubmit={handleSubmit}>
-            <div className={styles.modalHero}>
-              <div className={styles.modalIcon}>
+        <div
+          className={styles.modalBg}
+        >
+          <form
+            className={styles.modal}
+            onSubmit={handleSubmit}
+          >
+            <div
+              className={
+                styles.modalHero
+              }
+            >
+              <div
+                className={
+                  styles.modalIcon
+                }
+              >
                 <FiMapPin />
               </div>
 
               <div>
-                <h2>{editingId ? "Editar comunidad" : "Nueva comunidad"}</h2>
+                <h2>
+                  {editingId
+                    ? "Editar comunidad"
+                    : "Nueva comunidad"}
+                </h2>
+
                 <p>
                   {editingId
                     ? "Actualiza los datos generales de la comunidad."
@@ -664,7 +1225,9 @@ export default function ComunidadesPage() {
 
               <button
                 type="button"
-                className={styles.closeButton}
+                className={
+                  styles.closeButton
+                }
                 onClick={closeModal}
                 title="Cerrar"
               >
@@ -672,14 +1235,27 @@ export default function ComunidadesPage() {
               </button>
             </div>
 
-            <div className={styles.modalBody}>
-              <div className={styles.formRow}>
+            <div
+              className={
+                styles.modalBody
+              }
+            >
+              <div
+                className={
+                  styles.formRow
+                }
+              >
                 <label>
-                  Nombre de la comunidad <span>*</span>
+                  Nombre de la
+                  comunidad{" "}
+                  <span>*</span>
+
                   <input
                     name="nombre"
                     value={form.nombre}
-                    onChange={handleTextChange}
+                    onChange={
+                      handleTextChange
+                    }
                     placeholder="Ej. Héroes Carranza"
                     required
                   />
@@ -687,10 +1263,15 @@ export default function ComunidadesPage() {
 
                 <label>
                   Clave <span>*</span>
+
                   <input
                     name="claveInterna"
-                    value={form.claveInterna}
-                    onChange={handleTextChange}
+                    value={
+                      form.claveInterna
+                    }
+                    onChange={
+                      handleTextChange
+                    }
                     placeholder="Ej. HCA-001"
                     required
                   />
@@ -698,11 +1279,17 @@ export default function ComunidadesPage() {
               </div>
 
               <label>
-                Código postal <span>*</span>
+                Código postal{" "}
+                <span>*</span>
+
                 <input
                   name="codigoPostal"
-                  value={form.codigoPostal}
-                  onChange={handleTextChange}
+                  value={
+                    form.codigoPostal
+                  }
+                  onChange={
+                    handleTextChange
+                  }
                   placeholder="Ej. 42810"
                   maxLength={5}
                   inputMode="numeric"
@@ -710,26 +1297,46 @@ export default function ComunidadesPage() {
                 />
               </label>
 
-              <div className={styles.delegateBox}>
-                <h3>Delegado responsable</h3>
+              <div
+                className={
+                  styles.delegateBox
+                }
+              >
+                <h3>
+                  Delegado responsable
+                </h3>
 
-                <div className={styles.formRow}>
+                <div
+                  className={
+                    styles.formRow
+                  }
+                >
                   <label>
                     Nombre del delegado
+
                     <input
                       name="delegado"
-                      value={form.delegado}
-                      onChange={handleTextChange}
+                      value={
+                        form.delegado
+                      }
+                      onChange={
+                        handleTextChange
+                      }
                       placeholder="Nombre completo"
                     />
                   </label>
 
                   <label>
                     Teléfono
+
                     <input
                       name="telefonoDelegado"
-                      value={form.telefonoDelegado}
-                      onChange={handleTextChange}
+                      value={
+                        form.telefonoDelegado
+                      }
+                      onChange={
+                        handleTextChange
+                      }
                       placeholder="Ej. 7731234567"
                       maxLength={10}
                       inputMode="numeric"
@@ -741,28 +1348,42 @@ export default function ComunidadesPage() {
                   {editingId
                     ? "Actualizar INE del delegado"
                     : "INE del delegado"}
+
                   <input
                     name="delegadoIne"
                     type="file"
                     accept="image/*"
-                    onChange={handleTextChange}
+                    onChange={
+                      handleTextChange
+                    }
                   />
                 </label>
 
                 {selectedFileName && (
-                  <div className={styles.filePreview}>
-                    INE seleccionada: {selectedFileName}
+                  <div
+                    className={
+                      styles.filePreview
+                    }
+                  >
+                    INE seleccionada:{" "}
+                    {selectedFileName}
                   </div>
                 )}
               </div>
             </div>
 
-            <div className={styles.modalFoot}>
+            <div
+              className={
+                styles.modalFoot
+              }
+            >
               <Button
                 type="button"
                 variant="outline"
                 onClick={closeModal}
-                className={styles.cancelButton}
+                className={
+                  styles.cancelButton
+                }
               >
                 Cancelar
               </Button>
@@ -770,7 +1391,9 @@ export default function ComunidadesPage() {
               <Button
                 type="submit"
                 disabled={saving}
-                className={styles.saveButton}
+                className={
+                  styles.saveButton
+                }
               >
                 {saving
                   ? "Guardando..."
@@ -784,31 +1407,78 @@ export default function ComunidadesPage() {
       )}
 
       {ineModalOpen && (
-        <div className={styles.modalBg}>
-          <div className={styles.ineModal}>
-            <div className={styles.ineHead}>
-              <div className={styles.ineHeadInfo}>
-                <div className={styles.ineHeadIcon}>
+        <div
+          className={styles.modalBg}
+        >
+          <div
+            className={styles.ineModal}
+          >
+            <div
+              className={
+                styles.ineHead
+              }
+            >
+              <div
+                className={
+                  styles.ineHeadInfo
+                }
+              >
+                <div
+                  className={
+                    styles.ineHeadIcon
+                  }
+                >
                   <FiUserCheck />
                 </div>
 
                 <div>
-                  <h2>Identificación del delegado</h2>
-                  <p>{selectedCommunityName}</p>
+                  <h2>
+                    Identificación del
+                    delegado
+                  </h2>
+
+                  <p>
+                    {
+                      selectedCommunityName
+                    }
+                  </p>
                 </div>
               </div>
 
-              <button type="button" onClick={() => setIneModalOpen(false)}>
+              <button
+                type="button"
+                onClick={() =>
+                  setIneModalOpen(
+                    false,
+                  )
+                }
+              >
                 <FiX />
               </button>
             </div>
 
-            <div className={styles.ineBody}>
+            <div
+              className={
+                styles.ineBody
+              }
+            >
               {selectedDelegado && (
-                <div className={styles.ineDelegateRow}>
+                <div
+                  className={
+                    styles.ineDelegateRow
+                  }
+                >
                   <div>
-                    <strong>{selectedDelegado}</strong>
-                    <span>Delegado responsable</span>
+                    <strong>
+                      {
+                        selectedDelegado
+                      }
+                    </strong>
+
+                    <span>
+                      Delegado
+                      responsable
+                    </span>
                   </div>
                 </div>
               )}
@@ -818,44 +1488,78 @@ export default function ComunidadesPage() {
                   href={selectedIne}
                   target="_blank"
                   rel="noreferrer"
-                  className={styles.ineFrame}
+                  className={
+                    styles.ineFrame
+                  }
                 >
                   <img
                     src={selectedIne}
                     alt={`INE del delegado de ${selectedCommunityName}`}
-                    className={styles.ineImage}
+                    className={
+                      styles.ineImage
+                    }
                   />
 
-                  <span className={styles.ineZoom}>
-                    <FiEye /> Ver en tamaño completo
+                  <span
+                    className={
+                      styles.ineZoom
+                    }
+                  >
+                    <FiEye />
+                    Ver en tamaño
+                    completo
                   </span>
                 </a>
               ) : (
-                <div className={styles.noIne}>
+                <div
+                  className={
+                    styles.noIne
+                  }
+                >
                   <FiUserCheck />
-                  <p>Esta comunidad no tiene INE registrada.</p>
+
+                  <p>
+                    Esta comunidad no
+                    tiene INE
+                    registrada.
+                  </p>
                 </div>
               )}
             </div>
 
-            <div className={styles.modalFoot}>
-              {selectedIne && canDownloadIne && (
-                <a
-                  href={selectedIne}
-                  download
-                  target="_blank"
-                  rel="noreferrer"
-                  className={styles.ineDownload}
-                >
-                  <FiDownload />
-                  Descargar
-                </a>
-              )}
+            <div
+              className={
+                styles.modalFoot
+              }
+            >
+              {selectedIne &&
+                canDownloadIne && (
+                  <a
+                    href={
+                      selectedIne
+                    }
+                    download
+                    target="_blank"
+                    rel="noreferrer"
+                    className={
+                      styles.ineDownload
+                    }
+                  >
+                    <FiDownload />
+                    Descargar
+                  </a>
+                )}
 
               <Button
                 type="button"
-                onClick={() => setIneModalOpen(false)}
-                className={styles.primaryButton}
+                onClick={() =>
+                  setIneModalOpen(
+                    false,
+                  )
+                }
+                className={
+                  styles.primaryButton
+                }
               >
                 Cerrar
               </Button>
@@ -868,11 +1572,21 @@ export default function ComunidadesPage() {
         open={confirmacion.open}
         title={confirmacion.title}
         message={confirmacion.message}
-        confirmText={confirmacion.confirmText}
-        variant={confirmacion.variant}
-        loading={confirmacion.loading}
-        onCancel={cerrarConfirmacion}
-        onConfirm={() => void confirmarAccion()}
+        confirmText={
+          confirmacion.confirmText
+        }
+        variant={
+          confirmacion.variant
+        }
+        loading={
+          confirmacion.loading
+        }
+        onCancel={
+          cerrarConfirmacion
+        }
+        onConfirm={() =>
+          void confirmarAccion()
+        }
       />
     </section>
   );
