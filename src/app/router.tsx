@@ -6,7 +6,6 @@ import Login from "@/modules/auth/pages/Login";
 import ActivarCuentaPage from "@/modules/verificarCorreo/ActivarCuentaPage";
 import DashboardPage from "@/modules/dashboard/DashboardPage";
 import RegistroApoyoPage from "@/modules/apoyos/registro/RegistroApoyoPage";
-import HistorialApoyosPage from "@/modules/apoyos/historial/HistorialApoyosPage";
 import ComunidadesPage from "@/modules/comunidades/ComunidadesPage";
 import FondosPage from "@/modules/fondos/FondosPage";
 import RolesPage from "@/modules/administracion/roles/RolesPage";
@@ -50,14 +49,7 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      {
-        path: "apoyos/historial",
-        element: (
-          <ProtectedRoute permission="apoyos.history">
-            <HistorialApoyosPage />
-          </ProtectedRoute>
-        ),
-      },
+      
       {
         path: "comunidades",
         element: (

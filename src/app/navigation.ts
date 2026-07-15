@@ -1,7 +1,6 @@
 import {
   LayoutDashboard,
   HandHelping,
-  History,
   Building2,
   Wallet,
 } from "lucide-react";
@@ -10,20 +9,14 @@ export const navigationItems = [
   {
     id: "dashboard.view",
     title: "Dashboard",
-    path: "/",
+    path: "/dashboard",
     icon: LayoutDashboard,
   },
   {
     id: "apoyos.create",
-    title: "Registrar Apoyo",
+    title: "Apoyos",
     path: "/apoyos/registro",
     icon: HandHelping,
-  },
-  {
-    id: "apoyos.history",
-    title: "Historial",
-    path: "/apoyos/historial",
-    icon: History,
   },
   {
     id: "comunidades.view",

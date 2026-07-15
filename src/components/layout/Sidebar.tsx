@@ -2,12 +2,12 @@ import { useMemo, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   FiHome,
-  FiFolder,
   FiChevronDown,
   FiUser,
   FiLogOut,
   FiSettings,
   FiMapPin,
+  FiHeart,
 } from "react-icons/fi";
 
 import styles from "./Sidebar.module.css";
@@ -67,7 +67,8 @@ function getAuthUser() {
 
 function isInteractiveTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false;
-  return !!target.closest("button, a, input, textarea, select, label");
+
+  return Boolean(target.closest("button, a, input, textarea, select, label"));
 }
 
 export default function Sidebar({
@@ -81,10 +82,6 @@ export default function Sidebar({
   const { email, permissions } = getAuthUser();
 
   const allowedModules = useMemo(() => new Set(permissions), [permissions]);
-
-  const [apoyosOpen, setApoyosOpen] = useState(
-    location.pathname.startsWith("/apoyos/"),
-  );
 
   const [catalogosOpen, setCatalogosOpen] = useState(
     location.pathname.startsWith("/comunidades") ||
@@ -104,21 +101,10 @@ export default function Sidebar({
         icon: <FiHome />,
       },
       {
-        id: "apoyos.group",
+        id: "apoyos.create",
         label: "Apoyos",
-        icon: <FiFolder />,
-        children: [
-          {
-            id: "apoyos.create",
-            label: "Registro de apoyo",
-            to: "/apoyos/registro",
-          },
-          {
-            id: "apoyos.history",
-            label: "Historial de apoyos",
-            to: "/apoyos/historial",
-          },
-        ],
+        to: "/apoyos/registro",
+        icon: <FiHeart />,
       },
       {
         id: "catalogos.group",
@@ -174,7 +160,9 @@ export default function Sidebar({
 
         const children = item.children.filter((child) => canSee(child.id));
 
-        if (children.length === 0) return null;
+        if (children.length === 0) {
+          return null;
+        }
 
         return {
           ...item,
@@ -184,20 +172,20 @@ export default function Sidebar({
       .filter((item): item is MenuItem => Boolean(item));
   }, [menu, allowedModules]);
 
-  const handleLogout = () => {
+  function handleLogout() {
     localStorage.removeItem("presi2_auth");
     localStorage.removeItem("presi2_token");
-    onNavigate?.();
-    navigate("/login", { replace: true });
-  };
 
-  const handleGroupClick = (label: string) => {
+    onNavigate?.();
+
+    navigate("/login", {
+      replace: true,
+    });
+  }
+
+  function handleGroupClick(label: string) {
     if (collapsed && onBackgroundToggle) {
       onBackgroundToggle();
-    }
-
-    if (label === "Apoyos") {
-      setApoyosOpen((prev) => !prev);
     }
 
     if (label === "Catálogos") {
@@ -207,32 +195,45 @@ export default function Sidebar({
     if (label === "Administración") {
       setAdminOpen((prev) => !prev);
     }
-  };
+  }
 
-  const shouldShowSubmenu = (label: string) => {
+  function shouldShowSubmenu(label: string) {
     if (collapsed) return false;
-    if (label === "Apoyos") return apoyosOpen;
-    if (label === "Catálogos") return catalogosOpen;
-    if (label === "Administración") return adminOpen;
-    return false;
-  };
 
-  const isGroupOpen = (label: string) => {
-    if (label === "Apoyos") return apoyosOpen;
-    if (label === "Catálogos") return catalogosOpen;
-    if (label === "Administración") return adminOpen;
+    if (label === "Catálogos") {
+      return catalogosOpen;
+    }
+
+    if (label === "Administración") {
+      return adminOpen;
+    }
+
     return false;
-  };
+  }
+
+  function isGroupOpen(label: string) {
+    if (label === "Catálogos") {
+      return catalogosOpen;
+    }
+
+    if (label === "Administración") {
+      return adminOpen;
+    }
+
+    return false;
+  }
 
   return (
     <aside
       className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}
-      onPointerDownCapture={(e) => {
+      onPointerDownCapture={(event) => {
         if (!onBackgroundToggle) return;
 
-        const target = e.target as HTMLElement | null;
-        if (!target) return;
-        if (isInteractiveTarget(target)) return;
+        const target = event.target as HTMLElement | null;
+
+        if (!target || isInteractiveTarget(target)) {
+          return;
+        }
 
         onBackgroundToggle();
       }}

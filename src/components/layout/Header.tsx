@@ -12,7 +12,6 @@ function titleFromPath(pathname: string) {
   const map: Record<string, string> = {
     "/dashboard": "Inicio",
     "/apoyos/registro": "Registro de apoyo",
-    "/apoyos/historial": "Historial de apoyos",
     "/comunidades": "Comunidades",
     "/fondos": "Fondos",
     "/administracion/usuarios": "Usuarios",

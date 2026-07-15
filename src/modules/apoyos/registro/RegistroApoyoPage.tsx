@@ -1,14 +1,12 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
+  FiCheck,
+  FiCheckCircle,
+  FiClock,
   FiEdit2,
   FiEye,
-  FiFilter,
+  FiFileText,
   FiPlus,
   FiSearch,
   FiTrash2,
@@ -38,11 +36,7 @@ import type {
 
 import styles from "./RegistroApoyoPage.module.css";
 
-type ConfirmVariant =
-  | "danger"
-  | "warning"
-  | "success"
-  | "default";
+type ConfirmVariant = "danger" | "warning" | "success" | "default";
 
 const PAGE_SIZE = 10;
 
@@ -122,97 +116,72 @@ function normalizarTipoDocumento(
 export default function RegistroApoyoPage() {
   const toast = useToast();
 
-  const [registros, setRegistros] = useState<
-    RegistroApoyoListado[]
-  >([]);
+  const [registros, setRegistros] = useState<RegistroApoyoListado[]>([]);
 
-  const [comunidades, setComunidades] = useState<
-    CatalogoOption[]
-  >([]);
+  const [comunidades, setComunidades] = useState<CatalogoOption[]>([]);
 
-  const [apoyos, setApoyos] = useState<
-    CatalogoOption[]
-  >([]);
+  const [apoyos, setApoyos] = useState<CatalogoOption[]>([]);
 
-  const [estados, setEstados] = useState<
-    CatalogoOption[]
-  >([]);
+  const [estados, setEstados] = useState<CatalogoOption[]>([]);
 
-  const [form, setForm] =
-    useState<CrearRegistroApoyoForm>(
-      crearFormularioInicial,
-    );
+  const [form, setForm] = useState<CrearRegistroApoyoForm>(
+    crearFormularioInicial,
+  );
 
   const [query, setQuery] = useState("");
-  const [comunidadFiltro, setComunidadFiltro] =
-    useState("");
-  const [estadoFiltro, setEstadoFiltro] =
-    useState("");
+  const [comunidadFiltro, setComunidadFiltro] = useState("");
+  const [apoyoFiltro, setApoyoFiltro] = useState("");
+  const [estadoResumenFiltro, setEstadoResumenFiltro] = useState<
+    "todos" | "pendientes" | "validados" | "aprobados"
+  >("todos");
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [detalleOpen, setDetalleOpen] =
-    useState(false);
+  const [detalleOpen, setDetalleOpen] = useState(false);
 
-  const [
-    detalleSeleccionado,
-    setDetalleSeleccionado,
-  ] = useState<RegistroApoyoDetalle | null>(null);
+  const [detalleSeleccionado, setDetalleSeleccionado] =
+    useState<RegistroApoyoDetalle | null>(null);
 
-  const [
-    registroListadoSeleccionado,
-    setRegistroListadoSeleccionado,
-  ] = useState<RegistroApoyoListado | null>(null);
+  const [registroListadoSeleccionado, setRegistroListadoSeleccionado] =
+    useState<RegistroApoyoListado | null>(null);
 
-  const [
-    registroEditandoId,
-    setRegistroEditandoId,
-  ] = useState<string | null>(null);
+  const [registroEditandoId, setRegistroEditandoId] = useState<string | null>(
+    null,
+  );
 
-  const [pageNumber, setPageNumber] =
-    useState(1);
+  const [pageNumber, setPageNumber] = useState(1);
 
-  const [totalPages, setTotalPages] =
-    useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const [loading, setLoading] =
-    useState(false);
+  const [totalCount, setTotalCount] = useState(0);
 
-  const [
-    loadingCatalogos,
-    setLoadingCatalogos,
-  ] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [loadingEdit, setLoadingEdit] =
-    useState(false);
+  const [loadingCatalogos, setLoadingCatalogos] = useState(false);
 
-  const [
-    loadingDetalle,
-    setLoadingDetalle,
-  ] = useState(false);
+  const [loadingEdit, setLoadingEdit] = useState(false);
 
-  const [saving, setSaving] =
-    useState(false);
+  const [loadingDetalle, setLoadingDetalle] = useState(false);
 
-  const [confirmacion, setConfirmacion] =
-    useState(initialConfirmacion);
+  const [saving, setSaving] = useState(false);
+
+  const [confirmacion, setConfirmacion] = useState(initialConfirmacion);
 
   const cargarRegistros = useCallback(async () => {
     try {
       setLoading(true);
 
-      const { data } =
-        await registroApoyoService.obtenerTodos(
-          pageNumber,
-          PAGE_SIZE,
-        );
+      const { data } = await registroApoyoService.obtenerTodos(
+        pageNumber,
+        PAGE_SIZE,
+      );
+      
 
       setRegistros(data.items ?? []);
-
-      setTotalPages(
-        Math.max(data.totalPages || 1, 1),
-      );
+      setTotalCount(data.totalRecords ?? 0);
+      setTotalPages(Math.max(data.totalPages || 1, 1));
     } catch (error) {
       setRegistros([]);
+      setTotalCount(0);
       setTotalPages(1);
 
       toast.error(getApiErrorMessage(error));
@@ -239,29 +208,20 @@ export default function RegistroApoyoPage() {
         try {
           setLoadingCatalogos(true);
 
-          const [
-            comunidadesResponse,
-            apoyosResponse,
-            estadosResponse,
-          ] = await Promise.all([
-            registroApoyoCatalogosService.obtenerComunidades(),
-            registroApoyoCatalogosService.obtenerApoyos(),
-            registroApoyoCatalogosService.obtenerEstadosSolicitud(),
-          ]);
+          const [comunidadesResponse, apoyosResponse, estadosResponse] =
+            await Promise.all([
+              registroApoyoCatalogosService.obtenerComunidades(),
+              registroApoyoCatalogosService.obtenerApoyos(),
+              registroApoyoCatalogosService.obtenerEstadosSolicitud(),
+            ]);
 
           if (!activo) return;
 
-          setComunidades(
-            comunidadesResponse.data.items ?? [],
-          );
+          setComunidades(comunidadesResponse.data.items ?? []);
 
-          setApoyos(
-            apoyosResponse.data.items ?? [],
-          );
+          setApoyos(apoyosResponse.data.items ?? []);
 
-          setEstados(
-            estadosResponse.data ?? [],
-          );
+          setEstados(estadosResponse.data ?? []);
         } catch (error) {
           if (!activo) return;
 
@@ -269,9 +229,7 @@ export default function RegistroApoyoPage() {
           setApoyos([]);
           setEstados([]);
 
-          toast.error(
-            getApiErrorMessage(error),
-          );
+          toast.error(getApiErrorMessage(error));
         } finally {
           if (activo) {
             setLoadingCatalogos(false);
@@ -289,14 +247,9 @@ export default function RegistroApoyoPage() {
   }, [toast]);
 
   const registrosFiltrados = useMemo(() => {
-    const textoBusqueda =
-      normalizarTexto(query);
-
-    const comunidadSeleccionada =
-      normalizarTexto(comunidadFiltro);
-
-    const estadoSeleccionado =
-      normalizarTexto(estadoFiltro);
+    const textoBusqueda = normalizarTexto(query);
+    const comunidadSeleccionada = normalizarTexto(comunidadFiltro);
+    const apoyoSeleccionado = normalizarTexto(apoyoFiltro);
 
     return registros.filter((registro) => {
       const coincideBusqueda =
@@ -316,33 +269,95 @@ export default function RegistroApoyoPage() {
 
       const coincideComunidad =
         !comunidadSeleccionada ||
-        normalizarTexto(
-          registro.comunidad,
-        ) === comunidadSeleccionada;
+        normalizarTexto(registro.comunidad) === comunidadSeleccionada;
 
-      const coincideEstado =
-        !estadoSeleccionado ||
-        normalizarTexto(
-          registro.estado,
-        ) === estadoSeleccionado;
+      const coincideApoyo =
+        !apoyoSeleccionado ||
+        [registro.fondo, registro.tipoApoyo]
+          .map((value) => normalizarTexto(value))
+          .includes(apoyoSeleccionado);
+
+      const estadoRegistro = normalizarTexto(registro.estado);
+
+      const coincideEstadoResumen =
+        estadoResumenFiltro === "todos" ||
+        (estadoResumenFiltro === "pendientes" &&
+          estadoRegistro.includes("pendiente")) ||
+        (estadoResumenFiltro === "validados" &&
+          estadoRegistro.includes("valid")) ||
+        (estadoResumenFiltro === "aprobados" &&
+          estadoRegistro.includes("aprob"));
 
       return (
         coincideBusqueda &&
         coincideComunidad &&
-        coincideEstado
+        coincideApoyo &&
+        coincideEstadoResumen
       );
     });
   }, [
+    apoyoFiltro,
     comunidadFiltro,
-    estadoFiltro,
+    estadoResumenFiltro,
     query,
     registros,
   ]);
 
+  const resumen = useMemo(() => {
+    const contarEstado = (...terminos: string[]) =>
+      registros.filter((registro) => {
+        const estado = normalizarTexto(registro.estado);
+        return terminos.some((termino) => estado.includes(termino));
+      }).length;
+
+    return {
+      pendientes: contarEstado("pendiente"),
+      validados: contarEstado("validado", "validada"),
+      aprobados: contarEstado("aprobado", "aprobada"),
+    };
+  }, [registros]);
+
   const hayFiltrosActivos =
     query.trim() !== "" ||
     comunidadFiltro !== "" ||
-    estadoFiltro !== "";
+    apoyoFiltro !== "" ||
+    estadoResumenFiltro !== "todos";
+
+  function obtenerClaseEstado(estado?: string | null) {
+    const estadoNormalizado = normalizarTexto(estado);
+
+    if (estadoNormalizado.includes("pendiente")) {
+      return `${styles.statusBadge} ${styles.statusPending}`;
+    }
+
+    if (estadoNormalizado.includes("valid")) {
+      return `${styles.statusBadge} ${styles.statusValidated}`;
+    }
+
+    if (estadoNormalizado.includes("aprob")) {
+      return `${styles.statusBadge} ${styles.statusApproved}`;
+    }
+
+    if (
+      estadoNormalizado.includes("rechaz") ||
+      estadoNormalizado.includes("cancel")
+    ) {
+      return `${styles.statusBadge} ${styles.statusRejected}`;
+    }
+
+    return `${styles.statusBadge} ${styles.statusDefault}`;
+  }
+
+  function obtenerIniciales(value?: string | null) {
+    if (!value?.trim()) return "—";
+
+    return value
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((parte) => parte.charAt(0).toUpperCase())
+      .join("");
+  }
 
   function abrirModalNuevo() {
     setRegistroEditandoId(null);
@@ -358,54 +373,31 @@ export default function RegistroApoyoPage() {
     setForm(crearFormularioInicial());
   }
 
-  async function abrirDetalle(
-    registro: RegistroApoyoListado,
-  ) {
+  async function abrirDetalle(registro: RegistroApoyoListado) {
     try {
       setLoadingDetalle(true);
 
-      setRegistroListadoSeleccionado(
-        registro,
-      );
+      setRegistroListadoSeleccionado(registro);
 
-      const [
-        detalleResponse,
-        registroResponse,
-      ] = await Promise.all([
-        registroApoyoService.obtenerDetalle(
-          registro.id,
-        ),
-        registroApoyoService.obtenerPorId(
-          registro.id,
-        ),
+      const [detalleResponse, registroResponse] = await Promise.all([
+        registroApoyoService.obtenerDetalle(registro.id),
+        registroApoyoService.obtenerPorId(registro.id),
       ]);
 
-      const detalleData =
-        detalleResponse.data;
+      const detalleData = detalleResponse.data;
 
-      const registroData =
-        registroResponse.data;
+      const registroData = registroResponse.data;
 
       setDetalleSeleccionado({
         ...detalleData,
 
-        id:
-          detalleData.id ||
-          registroData.id ||
-          registro.id,
+        id: detalleData.id || registroData.id || registro.id,
 
-        folio:
-          detalleData.folio ||
-          registroData.folio ||
-          registro.folio,
+        folio: detalleData.folio || registroData.folio || registro.folio,
 
-        apoyoId:
-          detalleData.apoyoId ||
-          registroData.apoyoId,
+        apoyoId: detalleData.apoyoId || registroData.apoyoId,
 
-        apoyo:
-          detalleData.apoyo ||
-          registroData.apoyo,
+        apoyo: detalleData.apoyo || registroData.apoyo,
 
         fondo:
           detalleData.fondo ||
@@ -419,22 +411,16 @@ export default function RegistroApoyoPage() {
           registroData.apoyo ||
           registro.tipoApoyo,
 
-        comunidadId:
-          detalleData.comunidadId ||
-          registroData.comunidadId,
+        comunidadId: detalleData.comunidadId || registroData.comunidadId,
 
         comunidad:
-          detalleData.comunidad ||
-          registroData.comunidad ||
-          registro.comunidad,
+          detalleData.comunidad || registroData.comunidad || registro.comunidad,
 
         estadoSolicitudId:
-          detalleData.estadoSolicitudId ||
-          registroData.estadoSolicitudId,
+          detalleData.estadoSolicitudId || registroData.estadoSolicitudId,
 
         estadoSolicitud:
-          detalleData.estadoSolicitud ||
-          registroData.estadoSolicitud,
+          detalleData.estadoSolicitud || registroData.estadoSolicitud,
 
         estado:
           detalleData.estado ||
@@ -450,52 +436,35 @@ export default function RegistroApoyoPage() {
           registroData.estadoSolicitud ||
           registro.estado,
 
-        delegado:
-          detalleData.delegado ||
-          registro.delegado,
+        delegado: detalleData.delegado || registro.delegado,
 
-        fechaApoyo:
-          detalleData.fechaApoyo ||
-          registroData.fechaApoyo,
+        fechaApoyo: detalleData.fechaApoyo || registroData.fechaApoyo,
 
         fechaRegistro:
           detalleData.fechaRegistro ||
           registroData.createdAt ||
           registro.fechaRegistro,
 
-        createdAt:
-          detalleData.createdAt ||
-          registroData.createdAt,
+        createdAt: detalleData.createdAt || registroData.createdAt,
 
-        montoOtorgado:
-          detalleData.montoOtorgado ??
-          registroData.montoOtorgado,
+        montoOtorgado: detalleData.montoOtorgado ?? registroData.montoOtorgado,
 
-        observaciones:
-          detalleData.observaciones ??
-          registroData.observaciones,
+        observaciones: detalleData.observaciones ?? registroData.observaciones,
 
-        activo:
-          detalleData.activo ??
-          registroData.activo,
+        activo: detalleData.activo ?? registroData.activo,
 
-        documentos:
-          detalleData.documentos?.length
-            ? detalleData.documentos
-            : registroData.documentos ?? [],
+        documentos: detalleData.documentos?.length
+          ? detalleData.documentos
+          : (registroData.documentos ?? []),
       });
 
       setDetalleOpen(true);
     } catch (error) {
       setDetalleSeleccionado(null);
 
-      setRegistroListadoSeleccionado(
-        null,
-      );
+      setRegistroListadoSeleccionado(null);
 
-      toast.error(
-        getApiErrorMessage(error),
-      );
+      toast.error(getApiErrorMessage(error));
     } finally {
       setLoadingDetalle(false);
     }
@@ -507,95 +476,62 @@ export default function RegistroApoyoPage() {
     setDetalleOpen(false);
     setDetalleSeleccionado(null);
 
-    setRegistroListadoSeleccionado(
-      null,
-    );
+    setRegistroListadoSeleccionado(null);
   }
 
-  async function abrirEditar(
-    registro: RegistroApoyoListado,
-  ) {
+  async function abrirEditar(registro: RegistroApoyoListado) {
     try {
       setLoadingEdit(true);
 
-      const { data } =
-        await registroApoyoService.obtenerPorId(
-          registro.id,
-        );
+      const { data } = await registroApoyoService.obtenerPorId(registro.id);
 
-      const documentosExistentes: DocumentoApoyoForm[] =
-        data.documentos?.length
-          ? data.documentos.map(
-              (documento) => ({
-                id: documento.id,
+      const documentosExistentes: DocumentoApoyoForm[] = data.documentos?.length
+        ? data.documentos.map((documento) => ({
+            id: documento.id,
 
-                nombreArchivo:
-                  documento.nombreArchivo,
+            nombreArchivo: documento.nombreArchivo,
 
-                esExistente: true,
+            esExistente: true,
 
-                archivo: null,
+            archivo: null,
 
-                monto:
-                  documento.monto !==
-                    undefined &&
-                  documento.monto !== null
-                    ? documento.monto.toString()
-                    : "",
+            monto:
+              documento.monto !== undefined && documento.monto !== null
+                ? documento.monto.toString()
+                : "",
 
-                descripcion:
-                  documento.descripcion ?? "",
+            descripcion: documento.descripcion ?? "",
 
-                tipoDocumento:
-                  normalizarTipoDocumento(
-                    documento.tipoDocumento,
-                  ),
-              }),
-            )
-          : [crearDocumentoInicial()];
+            tipoDocumento: normalizarTipoDocumento(documento.tipoDocumento),
+          }))
+        : [crearDocumentoInicial()];
 
-      setRegistroEditandoId(
-        registro.id,
-      );
+      setRegistroEditandoId(registro.id);
 
       setForm({
-        folio:
-          data.folio ??
-          registro.folio ??
-          "",
+        folio: data.folio ?? registro.folio ?? "",
 
         apoyoId: data.apoyoId,
 
-        comunidadId:
-          data.comunidadId,
+        comunidadId: data.comunidadId,
 
-        estadoSolicitudId:
-          data.estadoSolicitudId,
+        estadoSolicitudId: data.estadoSolicitudId,
 
-        fechaApoyo:
-          obtenerFechaFormulario(
-            data.fechaApoyo,
-          ),
+        fechaApoyo: obtenerFechaFormulario(data.fechaApoyo),
 
         montoOtorgado:
-          data.montoOtorgado !==
-            undefined &&
-          data.montoOtorgado !== null
+          data.montoOtorgado !== undefined && data.montoOtorgado !== null
             ? data.montoOtorgado.toString()
             : "",
 
-        observaciones:
-          data.observaciones ?? "",
+        observaciones: data.observaciones ?? "",
 
-        documentos:
-          documentosExistentes,
+        documentos: documentosExistentes,
       });
 
       setModalOpen(true);
     } catch (error) {
-      toast.error(
-        getApiErrorMessage(error),
-      );
+      toast.error(getApiErrorMessage(error));
     } finally {
       setLoadingEdit(false);
     }
@@ -604,15 +540,14 @@ export default function RegistroApoyoPage() {
   function limpiarFiltros() {
     setQuery("");
     setComunidadFiltro("");
-    setEstadoFiltro("");
+    setApoyoFiltro("");
+    setEstadoResumenFiltro("todos");
   }
 
   function cerrarConfirmacion() {
     if (confirmacion.loading) return;
 
-    setConfirmacion(
-      initialConfirmacion,
-    );
+    setConfirmacion(initialConfirmacion);
   }
 
   async function confirmarAccion() {
@@ -626,9 +561,7 @@ export default function RegistroApoyoPage() {
 
       await confirmacion.action();
 
-      setConfirmacion(
-        initialConfirmacion,
-      );
+      setConfirmacion(initialConfirmacion);
     } catch {
       setConfirmacion((prev) => ({
         ...prev,
@@ -637,17 +570,10 @@ export default function RegistroApoyoPage() {
     }
   }
 
-  async function handleEliminarRegistro(
-    registro: RegistroApoyoListado,
-  ) {
-    await registroApoyoService.eliminar(
-      registro.id,
-    );
+  async function handleEliminarRegistro(registro: RegistroApoyoListado) {
+    await registroApoyoService.eliminar(registro.id);
 
-    if (
-      registros.length === 1 &&
-      pageNumber > 1
-    ) {
+    if (registros.length === 1 && pageNumber > 1) {
       setPageNumber((prev) => prev - 1);
       return;
     }
@@ -655,9 +581,7 @@ export default function RegistroApoyoPage() {
     await cargarRegistros();
   }
 
-  function pedirEliminarRegistro(
-    registro: RegistroApoyoListado,
-  ) {
+  function pedirEliminarRegistro(registro: RegistroApoyoListado) {
     setConfirmacion({
       open: true,
       title: "Eliminar registro",
@@ -665,8 +589,7 @@ export default function RegistroApoyoPage() {
       confirmText: "Eliminar",
       variant: "danger",
       loading: false,
-      action: () =>
-        handleEliminarRegistro(registro),
+      action: () => handleEliminarRegistro(registro),
     });
   }
 
@@ -676,8 +599,7 @@ export default function RegistroApoyoPage() {
       | React.ChangeEvent<HTMLSelectElement>
       | React.ChangeEvent<HTMLTextAreaElement>,
   ) {
-    const { name, value } =
-      event.target;
+    const { name, value } = event.target;
 
     setForm((prev) => ({
       ...prev,
@@ -685,9 +607,7 @@ export default function RegistroApoyoPage() {
     }));
   }
 
-  function actualizarDocumento<
-    K extends keyof DocumentoApoyoForm,
-  >(
+  function actualizarDocumento<K extends keyof DocumentoApoyoForm>(
     index: number,
     field: K,
     value: DocumentoApoyoForm[K],
@@ -695,14 +615,13 @@ export default function RegistroApoyoPage() {
     setForm((prev) => ({
       ...prev,
 
-      documentos: prev.documentos.map(
-        (documento, currentIndex) =>
-          currentIndex === index
-            ? {
-                ...documento,
-                [field]: value,
-              }
-            : documento,
+      documentos: prev.documentos.map((documento, currentIndex) =>
+        currentIndex === index
+          ? {
+              ...documento,
+              [field]: value,
+            }
+          : documento,
       ),
     }));
   }
@@ -711,32 +630,22 @@ export default function RegistroApoyoPage() {
     setForm((prev) => ({
       ...prev,
 
-      documentos: [
-        ...prev.documentos,
-        crearDocumentoInicial(),
-      ],
+      documentos: [...prev.documentos, crearDocumentoInicial()],
     }));
   }
 
-  function quitarDocumento(
-    index: number,
-  ) {
+  function quitarDocumento(index: number) {
     setForm((prev) => ({
       ...prev,
 
       documentos:
         prev.documentos.length === 1
           ? [crearDocumentoInicial()]
-          : prev.documentos.filter(
-              (_, currentIndex) =>
-                currentIndex !== index,
-            ),
+          : prev.documentos.filter((_, currentIndex) => currentIndex !== index),
     }));
   }
 
-  async function handleSubmit(
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (
@@ -747,51 +656,31 @@ export default function RegistroApoyoPage() {
       !form.fechaApoyo ||
       !form.montoOtorgado
     ) {
-      toast.error(
-        "Completa todos los campos obligatorios.",
-      );
+      toast.error("Completa todos los campos obligatorios.");
 
       return;
     }
 
-    const montoOtorgado = Number(
-      form.montoOtorgado,
-    );
+    const montoOtorgado = Number(form.montoOtorgado);
 
-    if (
-      !Number.isFinite(montoOtorgado) ||
-      montoOtorgado <= 0
-    ) {
-      toast.error(
-        "El monto otorgado debe ser mayor a cero.",
-      );
+    if (!Number.isFinite(montoOtorgado) || montoOtorgado <= 0) {
+      toast.error("El monto otorgado debe ser mayor a cero.");
 
       return;
     }
 
-    const documentosInvalidos =
-      form.documentos.some(
-        (documento) => {
-          if (!documento.monto) {
-            return false;
-          }
+    const documentosInvalidos = form.documentos.some((documento) => {
+      if (!documento.monto) {
+        return false;
+      }
 
-          const montoDocumento = Number(
-            documento.monto,
-          );
+      const montoDocumento = Number(documento.monto);
 
-          return (
-            !Number.isFinite(
-              montoDocumento,
-            ) || montoDocumento < 0
-          );
-        },
-      );
+      return !Number.isFinite(montoDocumento) || montoDocumento < 0;
+    });
 
     if (documentosInvalidos) {
-      toast.error(
-        "Los montos de los documentos no pueden ser negativos.",
-      );
+      toast.error("Los montos de los documentos no pueden ser negativos.");
 
       return;
     }
@@ -800,14 +689,9 @@ export default function RegistroApoyoPage() {
       setSaving(true);
 
       if (registroEditandoId) {
-        await registroApoyoService.actualizar(
-          registroEditandoId,
-          form,
-        );
+        await registroApoyoService.actualizar(registroEditandoId, form);
       } else {
-        await registroApoyoService.crear(
-          form,
-        );
+        await registroApoyoService.crear(form);
       }
 
       setModalOpen(false);
@@ -828,337 +712,294 @@ export default function RegistroApoyoPage() {
   return (
     <section className={styles.page}>
       <section className={styles.panel}>
-        <div className={styles.toolbar}>
-          <div
-            className={
-              styles.filtersContainer
-            }
+        <div className={styles.statsGrid}>
+          <button
+            type="button"
+            className={`${styles.statCard} ${
+              estadoResumenFiltro === "todos" ? styles.statCardActive : ""
+            }`}
+            onClick={() => setEstadoResumenFiltro("todos")}
+            aria-pressed={estadoResumenFiltro === "todos"}
           >
-            <div className={styles.searchBox}>
-              <FiSearch />
-
-              <input
-                value={query}
-                onChange={(event) =>
-                  setQuery(event.target.value)
-                }
-                placeholder="Buscar por folio, apoyo o delegado..."
-              />
-
-              {query && (
-                <button
-                  type="button"
-                  className={
-                    styles.clearSearch
-                  }
-                  onClick={() => setQuery("")}
-                  title="Limpiar búsqueda"
-                >
-                  <FiX />
-                </button>
-              )}
+            <span className={`${styles.statIcon} ${styles.statIconWine}`}>
+              <FiFileText />
+            </span>
+            <div>
+              <p>Total de registros</p>
+              <strong>{totalCount}</strong>
             </div>
+          </button>
 
-            <div className={styles.filterBox}>
-              <FiFilter />
+          <button
+            type="button"
+            className={`${styles.statCard} ${
+              estadoResumenFiltro === "pendientes"
+                ? styles.statCardActive
+                : ""
+            }`}
+            onClick={() => setEstadoResumenFiltro("pendientes")}
+            aria-pressed={estadoResumenFiltro === "pendientes"}
+          >
+            <span className={`${styles.statIcon} ${styles.statIconPending}`}>
+              <FiClock />
+            </span>
+            <div>
+              <p>Pendientes</p>
+              <strong>{resumen.pendientes}</strong>
+            </div>
+          </button>
 
+          <button
+            type="button"
+            className={`${styles.statCard} ${
+              estadoResumenFiltro === "validados"
+                ? styles.statCardActive
+                : ""
+            }`}
+            onClick={() => setEstadoResumenFiltro("validados")}
+            aria-pressed={estadoResumenFiltro === "validados"}
+          >
+            <span className={`${styles.statIcon} ${styles.statIconValidated}`}>
+              <FiCheck />
+            </span>
+            <div>
+              <p>Validados</p>
+              <strong>{resumen.validados}</strong>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.statCard} ${
+              estadoResumenFiltro === "aprobados"
+                ? styles.statCardActive
+                : ""
+            }`}
+            onClick={() => setEstadoResumenFiltro("aprobados")}
+            aria-pressed={estadoResumenFiltro === "aprobados"}
+          >
+            <span className={`${styles.statIcon} ${styles.statIconApproved}`}>
+              <FiCheckCircle />
+            </span>
+            <div>
+              <p>Aprobados</p>
+              <strong>{resumen.aprobados}</strong>
+            </div>
+          </button>
+        </div>
+
+        <section className={styles.filtersPanel}>
+          <div className={styles.filtersGrid}>
+            <label className={styles.searchField}>
+              <span>Buscar</span>
+              <div className={styles.searchBox}>
+                <FiSearch />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Folio, comunidad, apoyo o delegado..."
+                />
+                {query && (
+                  <button
+                    type="button"
+                    className={styles.clearSearch}
+                    onClick={() => setQuery("")}
+                    title="Limpiar búsqueda"
+                  >
+                    <FiX />
+                  </button>
+                )}
+              </div>
+            </label>
+
+            <label>
+              <span>Comunidad</span>
               <select
                 value={comunidadFiltro}
-                onChange={(event) =>
-                  setComunidadFiltro(
-                    event.target.value,
-                  )
-                }
-                aria-label="Filtrar por comunidad"
+                onChange={(event) => setComunidadFiltro(event.target.value)}
                 disabled={loadingCatalogos}
               >
-                <option value="">
-                  Todas las comunidades
-                </option>
-
-                {comunidades.map(
-                  (comunidad) => (
-                    <option
-                      key={comunidad.id}
-                      value={comunidad.nombre}
-                    >
-                      {comunidad.nombre}
-                    </option>
-                  ),
-                )}
-              </select>
-            </div>
-
-            <div className={styles.filterBox}>
-              <FiFilter />
-
-              <select
-                value={estadoFiltro}
-                onChange={(event) =>
-                  setEstadoFiltro(
-                    event.target.value,
-                  )
-                }
-                aria-label="Filtrar por estado"
-                disabled={loadingCatalogos}
-              >
-                <option value="">
-                  Todos los estados
-                </option>
-
-                {estados.map((estado) => (
-                  <option
-                    key={estado.id}
-                    value={estado.nombre}
-                  >
-                    {estado.nombre}
+                <option value="">Todas</option>
+                {comunidades.map((comunidad) => (
+                  <option key={comunidad.id} value={comunidad.nombre}>
+                    {comunidad.nombre}
                   </option>
                 ))}
               </select>
-            </div>
+            </label>
 
-            {hayFiltrosActivos && (
-              <button
-                type="button"
-                className={
-                  styles.clearFiltersButton
-                }
-                onClick={limpiarFiltros}
+            <label>
+              <span>Apoyo</span>
+              <select
+                value={apoyoFiltro}
+                onChange={(event) => setApoyoFiltro(event.target.value)}
+                disabled={loadingCatalogos}
               >
-                <FiX />
-                Limpiar
-              </button>
-            )}
+                <option value="">Todos</option>
+                {apoyos.map((apoyo) => (
+                  <option key={apoyo.id} value={apoyo.nombre}>
+                    {apoyo.nombre}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className={styles.filterActions}>
+              {hayFiltrosActivos && (
+                <button
+                  type="button"
+                  className={styles.clearFiltersButton}
+                  onClick={limpiarFiltros}
+                >
+                  <FiX />
+                  Limpiar
+                </button>
+              )}
+
+              <Button
+                type="button"
+                className={styles.primaryButton}
+                onClick={abrirModalNuevo}
+                disabled={loadingCatalogos}
+              >
+                <FiPlus />
+                {loadingCatalogos ? "Cargando..." : "Nuevo apoyo"}
+              </Button>
+            </div>
           </div>
+        </section>
 
-          <div
-            className={
-              styles.toolbarActions
-            }
-          >
-            <Button
-              type="button"
-              className={
-                styles.primaryButton
-              }
-              onClick={abrirModalNuevo}
-              disabled={loadingCatalogos}
-            >
-              <FiPlus />
-
-              {loadingCatalogos
-                ? "Cargando catálogos..."
-                : "Nuevo apoyo"}
-            </Button>
-          </div>
-        </div>
-
-        <div
-          className={styles.tableWrapper}
-        >
+        <div className={styles.tableWrapper}>
           <table className={styles.table}>
             <thead>
               <tr>
                 <th>Folio</th>
                 <th>Comunidad</th>
-                <th>Apoyo</th>
+                <th>Fondo / apoyo</th>
+                <th>Tipo de apoyo</th>
+                <th>Fecha</th>
                 <th>Estado</th>
                 <th>Delegado</th>
-                <th>Fecha</th>
-                <th>Acciones</th>
+                <th className={styles.actionsHeader}>Acciones</th>
               </tr>
             </thead>
 
             <tbody>
               {loading ? (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className={styles.empty}
-                  >
+                  <td colSpan={8} className={styles.empty}>
                     Cargando apoyos...
                   </td>
                 </tr>
-              ) : registrosFiltrados.length ===
-                0 ? (
+              ) : registrosFiltrados.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className={styles.empty}
-                  >
+                  <td colSpan={8} className={styles.empty}>
                     {hayFiltrosActivos
                       ? "No hay registros que coincidan con los filtros."
                       : "No se encontraron apoyos registrados."}
                   </td>
                 </tr>
               ) : (
-                registrosFiltrados.map(
-                  (registro) => (
-                    <tr key={registro.id}>
-                      <td>
-                        <strong>
-                          {registro.folio}
-                        </strong>
-                      </td>
-
-                      <td>
-                        {registro.comunidad ||
-                          "—"}
-                      </td>
-
-                      <td>
-                        {registro.fondo ||
-                          registro.tipoApoyo ||
-                          "—"}
-                      </td>
-
-                      <td>
-                        <span
-                          className={
-                            styles.statusBadge
-                          }
-                        >
-                          {registro.estado ||
-                            "Sin estado"}
+                registrosFiltrados.map((registro) => (
+                  <tr key={registro.id}>
+                    <td>
+                      <strong className={styles.folio}>{registro.folio}</strong>
+                    </td>
+                    <td>
+                      <div className={styles.communityCell}>
+                        <span className={styles.communityAvatar}>
+                          {obtenerIniciales(registro.comunidad)}
                         </span>
-                      </td>
-
-                      <td>
-                        {registro.delegado ||
-                          "—"}
-                      </td>
-
-                      <td>
-                        {mostrarFecha(
-                          registro.fechaRegistro,
-                        )}
-                      </td>
-
-                      <td>
-                        <div
-                          className={styles.actions}
+                        <span>{registro.comunidad || "—"}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={styles.supportPill}>
+                        {registro.fondo || registro.tipoApoyo || "—"}
+                      </span>
+                    </td>
+                    <td>{registro.tipoApoyo || "—"}</td>
+                    <td className={styles.dateCell}>
+                      {mostrarFecha(registro.fechaRegistro)}
+                    </td>
+                    <td>
+                      <span className={obtenerClaseEstado(registro.estado)}>
+                        <i />
+                        {registro.estado || "Sin estado"}
+                      </span>
+                    </td>
+                    <td className={styles.delegateCell}>
+                      {registro.delegado || "—"}
+                    </td>
+                    <td className={styles.actionsCell}>
+                      <div className={styles.actions}>
+                        <button
+                          type="button"
+                          className={styles.viewAction}
+                          title={
+                            loadingDetalle ? "Cargando detalle" : "Ver detalle"
+                          }
+                          disabled={loadingDetalle}
+                          onClick={() => void abrirDetalle(registro)}
                         >
-                          <button
-                            type="button"
-                            className={
-                              styles.viewAction
-                            }
-                            title={
-                              loadingDetalle
-                                ? "Cargando detalle"
-                                : "Ver detalle"
-                            }
-                            disabled={
-                              loadingDetalle
-                            }
-                            onClick={() =>
-                              void abrirDetalle(
-                                registro,
-                              )
-                            }
-                          >
-                            <FiEye />
-                          </button>
-
-                          <button
-                            type="button"
-                            className={
-                              styles.editAction
-                            }
-                            title="Editar"
-                            disabled={loadingEdit}
-                            onClick={() =>
-                              void abrirEditar(
-                                registro,
-                              )
-                            }
-                          >
-                            <FiEdit2 />
-                          </button>
-
-                          <button
-                            type="button"
-                            className={
-                              styles.deleteAction
-                            }
-                            title="Eliminar"
-                            disabled={
-                              confirmacion.loading
-                            }
-                            onClick={() =>
-                              pedirEliminarRegistro(
-                                registro,
-                              )
-                            }
-                          >
-                            <FiTrash2 />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ),
-                )
+                          <FiEye />
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.editAction}
+                          title="Editar"
+                          disabled={loadingEdit}
+                          onClick={() => void abrirEditar(registro)}
+                        >
+                          <FiEdit2 />
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.deleteAction}
+                          title="Eliminar"
+                          disabled={confirmacion.loading}
+                          onClick={() => pedirEliminarRegistro(registro)}
+                        >
+                          <FiTrash2 />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
 
-        <footer
-          className={styles.pagination}
-        >
-          <button
-            type="button"
-            disabled={
-              loading || pageNumber <= 1
-            }
-            onClick={() =>
-              setPageNumber((prev) =>
-                Math.max(prev - 1, 1),
-              )
-            }
-          >
-            Anterior
-          </button>
-
+        <footer className={styles.pagination}>
           <span>
-            Página {pageNumber} de{" "}
-            {totalPages}
+            Página {pageNumber} de {totalPages}
           </span>
-
-          <button
-            type="button"
-            disabled={
-              loading ||
-              pageNumber >= totalPages
-            }
-            onClick={() =>
-              setPageNumber(
-                (prev) => prev + 1,
-              )
-            }
-          >
-            Siguiente
-          </button>
+          <div>
+            <button
+              type="button"
+              disabled={loading || pageNumber <= 1}
+              onClick={() => setPageNumber((prev) => Math.max(prev - 1, 1))}
+            >
+              Anterior
+            </button>
+            <button
+              type="button"
+              disabled={loading || pageNumber >= totalPages}
+              onClick={() => setPageNumber((prev) => prev + 1)}
+            >
+              Siguiente
+            </button>
+          </div>
         </footer>
       </section>
 
       {modalOpen && (
-        <div
-          className={styles.modalOverlay}
-        >
-          <form
-            className={styles.modal}
-            onSubmit={handleSubmit}
-          >
-            <div
-              className={styles.modalHead}
-            >
+        <div className={styles.modalOverlay}>
+          <form className={styles.modal} onSubmit={handleSubmit}>
+            <div className={styles.modalHead}>
               <div>
-                <h2>
-                  {registroEditandoId
-                    ? "Editar apoyo"
-                    : "Nuevo apoyo"}
-                </h2>
+                <h2>{registroEditandoId ? "Editar apoyo" : "Nuevo apoyo"}</h2>
 
                 <p>
                   {registroEditandoId
@@ -1177,21 +1018,14 @@ export default function RegistroApoyoPage() {
               </button>
             </div>
 
-            <div
-              className={styles.modalBody}
-            >
-              <div
-                className={styles.formGrid}
-              >
+            <div className={styles.modalBody}>
+              <div className={styles.formGrid}>
                 <label>
                   Folio <span>*</span>
-
                   <input
                     name="folio"
                     value={form.folio}
-                    onChange={
-                      handleInputChange
-                    }
+                    onChange={handleInputChange}
                     placeholder="Ej. APOYO-001"
                     required
                     disabled={saving}
@@ -1199,18 +1033,12 @@ export default function RegistroApoyoPage() {
                 </label>
 
                 <label>
-                  Fecha del apoyo{" "}
-                  <span>*</span>
-
+                  Fecha del apoyo <span>*</span>
                   <input
                     name="fechaApoyo"
                     type="date"
-                    value={
-                      form.fechaApoyo
-                    }
-                    onChange={
-                      handleInputChange
-                    }
+                    value={form.fechaApoyo}
+                    onChange={handleInputChange}
                     required
                     disabled={saving}
                   />
@@ -1218,57 +1046,36 @@ export default function RegistroApoyoPage() {
 
                 <label>
                   Comunidad <span>*</span>
-
                   <select
                     name="comunidadId"
-                    value={
-                      form.comunidadId
-                    }
-                    onChange={
-                      handleInputChange
-                    }
+                    value={form.comunidadId}
+                    onChange={handleInputChange}
                     required
                     disabled={saving}
                   >
-                    <option value="">
-                      Selecciona una comunidad
-                    </option>
+                    <option value="">Selecciona una comunidad</option>
 
-                    {comunidades.map(
-                      (comunidad) => (
-                        <option
-                          key={comunidad.id}
-                          value={comunidad.id}
-                        >
-                          {comunidad.nombre}
-                        </option>
-                      ),
-                    )}
+                    {comunidades.map((comunidad) => (
+                      <option key={comunidad.id} value={comunidad.id}>
+                        {comunidad.nombre}
+                      </option>
+                    ))}
                   </select>
                 </label>
 
                 <label>
-                  Tipo de apoyo{" "}
-                  <span>*</span>
-
+                  Tipo de apoyo <span>*</span>
                   <select
                     name="apoyoId"
                     value={form.apoyoId}
-                    onChange={
-                      handleInputChange
-                    }
+                    onChange={handleInputChange}
                     required
                     disabled={saving}
                   >
-                    <option value="">
-                      Selecciona un apoyo
-                    </option>
+                    <option value="">Selecciona un apoyo</option>
 
                     {apoyos.map((apoyo) => (
-                      <option
-                        key={apoyo.id}
-                        value={apoyo.id}
-                      >
+                      <option key={apoyo.id} value={apoyo.id}>
                         {apoyo.nombre}
                       </option>
                     ))}
@@ -1276,29 +1083,18 @@ export default function RegistroApoyoPage() {
                 </label>
 
                 <label>
-                  Estado de solicitud{" "}
-                  <span>*</span>
-
+                  Estado de solicitud <span>*</span>
                   <select
                     name="estadoSolicitudId"
-                    value={
-                      form.estadoSolicitudId
-                    }
-                    onChange={
-                      handleInputChange
-                    }
+                    value={form.estadoSolicitudId}
+                    onChange={handleInputChange}
                     required
                     disabled={saving}
                   >
-                    <option value="">
-                      Selecciona un estado
-                    </option>
+                    <option value="">Selecciona un estado</option>
 
                     {estados.map((estado) => (
-                      <option
-                        key={estado.id}
-                        value={estado.id}
-                      >
+                      <option key={estado.id} value={estado.id}>
                         {estado.nombre}
                       </option>
                     ))}
@@ -1306,20 +1102,14 @@ export default function RegistroApoyoPage() {
                 </label>
 
                 <label>
-                  Monto otorgado{" "}
-                  <span>*</span>
-
+                  Monto otorgado <span>*</span>
                   <input
                     name="montoOtorgado"
                     type="number"
                     min="0.01"
                     step="0.01"
-                    value={
-                      form.montoOtorgado
-                    }
-                    onChange={
-                      handleInputChange
-                    }
+                    value={form.montoOtorgado}
+                    onChange={handleInputChange}
                     placeholder="0.00"
                     required
                     disabled={saving}
@@ -1329,46 +1119,28 @@ export default function RegistroApoyoPage() {
 
               <label>
                 Observaciones
-
                 <textarea
                   name="observaciones"
-                  value={
-                    form.observaciones
-                  }
-                  onChange={
-                    handleInputChange
-                  }
+                  value={form.observaciones}
+                  onChange={handleInputChange}
                   placeholder="Notas generales del apoyo"
                   rows={3}
                   disabled={saving}
                 />
               </label>
 
-              <div
-                className={
-                  styles.documentsBox
-                }
-              >
-                <div
-                  className={
-                    styles.documentsHead
-                  }
-                >
+              <div className={styles.documentsBox}>
+                <div className={styles.documentsHead}>
                   <div>
                     <h3>Documentos</h3>
 
-                    <p>
-                      Agrega facturas, imágenes u
-                      otros comprobantes.
-                    </p>
+                    <p>Agrega facturas, imágenes u otros comprobantes.</p>
                   </div>
 
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={
-                      agregarDocumento
-                    }
+                    onClick={agregarDocumento}
                     disabled={saving}
                   >
                     <FiPlus />
@@ -1377,186 +1149,125 @@ export default function RegistroApoyoPage() {
                 </div>
 
                 {registroEditandoId && (
-                  <p
-                    className={
-                      styles.editDocumentsNotice
-                    }
-                  >
-                    Los documentos actuales se
-                    muestran como referencia. Para
-                    agregar un documento nuevo,
-                    utiliza el botón Agregar y
+                  <p className={styles.editDocumentsNotice}>
+                    Los documentos actuales se muestran como referencia. Para
+                    agregar un documento nuevo, utiliza el botón Agregar y
                     selecciona un archivo.
                   </p>
                 )}
 
-                {form.documentos.map(
-                  (documento, index) => (
-                    <div
-                      key={
-                        documento.id ?? index
-                      }
-                      className={
-                        styles.documentCard
-                      }
-                    >
-                      <div
-                        className={
-                          styles.documentTitle
-                        }
-                      >
-                        <strong>
-                          Documento {index + 1}
-                        </strong>
+                {form.documentos.map((documento, index) => (
+                  <div
+                    key={documento.id ?? index}
+                    className={styles.documentCard}
+                  >
+                    <div className={styles.documentTitle}>
+                      <strong>Documento {index + 1}</strong>
 
-                        {!documento.esExistente && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              quitarDocumento(
-                                index,
-                              )
-                            }
-                            title="Quitar documento"
-                            disabled={saving}
-                          >
-                            <FiTrash2 />
-                          </button>
-                        )}
-                      </div>
-
-                      <div
-                        className={
-                          styles.formGrid
-                        }
-                      >
-                        <label>
-                          Archivo
-
-                          {documento.esExistente &&
-                            documento.nombreArchivo && (
-                              <small>
-                                Archivo actual:{" "}
-                                {
-                                  documento.nombreArchivo
-                                }
-                              </small>
-                            )}
-
-                          {!documento.esExistente && (
-                            <input
-                              type="file"
-                              accept="image/*,.pdf"
-                              disabled={saving}
-                              onChange={(event) =>
-                                actualizarDocumento(
-                                  index,
-                                  "archivo",
-                                  event.target.files?.[0] ??
-                                    null,
-                                )
-                              }
-                            />
-                          )}
-                        </label>
-
-                        <label>
-                          Tipo
-
-                          <select
-                            value={
-                              documento.tipoDocumento
-                            }
-                            disabled={
-                              saving ||
-                              documento.esExistente
-                            }
-                            onChange={(event) =>
-                              actualizarDocumento(
-                                index,
-                                "tipoDocumento",
-                                event.target
-                                  .value as DocumentoApoyoForm["tipoDocumento"],
-                              )
-                            }
-                          >
-                            <option value="factura">
-                              Factura
-                            </option>
-
-                            <option value="imagen">
-                              Imagen
-                            </option>
-
-                            <option value="otro">
-                              Otro
-                            </option>
-                          </select>
-                        </label>
-
-                        <label>
-                          Monto
-
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={
-                              documento.monto
-                            }
-                            disabled={
-                              saving ||
-                              documento.esExistente
-                            }
-                            onChange={(event) =>
-                              actualizarDocumento(
-                                index,
-                                "monto",
-                                event.target.value,
-                              )
-                            }
-                            placeholder="0.00"
-                          />
-                        </label>
-
-                        <label>
-                          Descripción
-
-                          <input
-                            value={
-                              documento.descripcion
-                            }
-                            disabled={
-                              saving ||
-                              documento.esExistente
-                            }
-                            onChange={(event) =>
-                              actualizarDocumento(
-                                index,
-                                "descripcion",
-                                event.target.value,
-                              )
-                            }
-                            placeholder="Descripción del documento"
-                          />
-                        </label>
-                      </div>
+                      {!documento.esExistente && (
+                        <button
+                          type="button"
+                          onClick={() => quitarDocumento(index)}
+                          title="Quitar documento"
+                          disabled={saving}
+                        >
+                          <FiTrash2 />
+                        </button>
+                      )}
                     </div>
-                  ),
-                )}
+
+                    <div className={styles.formGrid}>
+                      <label>
+                        Archivo
+                        {documento.esExistente && documento.nombreArchivo && (
+                          <small>
+                            Archivo actual: {documento.nombreArchivo}
+                          </small>
+                        )}
+                        {!documento.esExistente && (
+                          <input
+                            type="file"
+                            accept="image/*,.pdf"
+                            disabled={saving}
+                            onChange={(event) =>
+                              actualizarDocumento(
+                                index,
+                                "archivo",
+                                event.target.files?.[0] ?? null,
+                              )
+                            }
+                          />
+                        )}
+                      </label>
+
+                      <label>
+                        Tipo
+                        <select
+                          value={documento.tipoDocumento}
+                          disabled={saving || documento.esExistente}
+                          onChange={(event) =>
+                            actualizarDocumento(
+                              index,
+                              "tipoDocumento",
+                              event.target
+                                .value as DocumentoApoyoForm["tipoDocumento"],
+                            )
+                          }
+                        >
+                          <option value="factura">Factura</option>
+
+                          <option value="imagen">Imagen</option>
+
+                          <option value="otro">Otro</option>
+                        </select>
+                      </label>
+
+                      <label>
+                        Monto
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={documento.monto}
+                          disabled={saving || documento.esExistente}
+                          onChange={(event) =>
+                            actualizarDocumento(
+                              index,
+                              "monto",
+                              event.target.value,
+                            )
+                          }
+                          placeholder="0.00"
+                        />
+                      </label>
+
+                      <label>
+                        Descripción
+                        <input
+                          value={documento.descripcion}
+                          disabled={saving || documento.esExistente}
+                          onChange={(event) =>
+                            actualizarDocumento(
+                              index,
+                              "descripcion",
+                              event.target.value,
+                            )
+                          }
+                          placeholder="Descripción del documento"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div
-              className={styles.modalFoot}
-            >
+            <div className={styles.modalFoot}>
               <Button
                 type="button"
                 variant="outline"
                 onClick={cerrarModal}
-                className={
-                  styles.cancelButton
-                }
+                className={styles.cancelButton}
                 disabled={saving}
               >
                 Cancelar
@@ -1564,13 +1275,8 @@ export default function RegistroApoyoPage() {
 
               <Button
                 type="submit"
-                disabled={
-                  saving ||
-                  loadingCatalogos
-                }
-                className={
-                  styles.primaryButton
-                }
+                disabled={saving || loadingCatalogos}
+                className={styles.primaryButton}
               >
                 {saving
                   ? "Guardando..."
@@ -1586,13 +1292,10 @@ export default function RegistroApoyoPage() {
       <RegistroApoyoDetalleModal
         open={detalleOpen}
         detalle={detalleSeleccionado}
-        registroListado={
-          registroListadoSeleccionado
-        }
+        registroListado={registroListadoSeleccionado}
         onClose={cerrarDetalle}
         onEdit={() => {
-          const registro =
-            registroListadoSeleccionado;
+          const registro = registroListadoSeleccionado;
 
           cerrarDetalle();
 
@@ -1606,15 +1309,11 @@ export default function RegistroApoyoPage() {
         open={confirmacion.open}
         title={confirmacion.title}
         message={confirmacion.message}
-        confirmText={
-          confirmacion.confirmText
-        }
+        confirmText={confirmacion.confirmText}
         variant={confirmacion.variant}
         loading={confirmacion.loading}
         onCancel={cerrarConfirmacion}
-        onConfirm={() =>
-          void confirmarAccion()
-        }
+        onConfirm={() => void confirmarAccion()}
       />
     </section>
   );

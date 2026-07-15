@@ -14,8 +14,6 @@
 .page {
   height: calc(100dvh - 64px);
   min-height: 0;
-  display: flex;
-  flex-direction: column;
   padding: 18px 22px;
   overflow: hidden;
   background: var(--surface);
@@ -23,101 +21,213 @@
 }
 
 .panel {
-  flex: 1 1 auto;
+  height: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   overflow: hidden;
 }
 
 /* =========================
-   BARRA DE HERRAMIENTAS
+   TARJETAS / FILTROS DE ESTADO
    ========================= */
 
-.toolbar {
+.statsGrid {
   flex: 0 0 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-  align-items: center;
 }
 
-.filtersContainer {
+.statCard {
   min-width: 0;
-  display: grid;
-  grid-template-columns:
-    minmax(230px, 1.5fr)
-    minmax(170px, 0.8fr)
-    minmax(160px, 0.75fr)
-    auto;
-  gap: 10px;
-  align-items: center;
-}
-
-.searchBox,
-.filterBox {
-  height: 40px;
-  min-width: 0;
+  min-height: 82px;
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 0 12px;
+  gap: 13px;
+  padding: 15px 18px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(75, 0, 22, 0.035);
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(75, 0, 22, 0.24);
+  box-shadow: 0 12px 26px rgba(75, 0, 22, 0.08);
+}
+
+.statCard:focus-visible {
+  outline: none;
+  border-color: var(--vino);
+  box-shadow: 0 0 0 3px rgba(75, 0, 22, 0.08);
+}
+
+.statCardActive {
+  border-color: var(--vino);
+  background: var(--vino-f);
+  box-shadow: 0 0 0 3px rgba(75, 0, 22, 0.06);
+}
+
+.statIcon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 19px;
+}
+
+.statIconWine {
+  background: var(--vino-f);
+  color: var(--vino);
+}
+
+.statIconPending {
+  background: #fff3cf;
+  color: #d97706;
+}
+
+.statIconValidated {
+  background: #d8f8e8;
+  color: #059669;
+}
+
+.statIconApproved {
+  background: #dceaff;
+  color: #2563eb;
+}
+
+.statCard p {
+  margin: 0 0 4px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statCard strong {
+  display: block;
+  color: var(--text);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 21px;
+  line-height: 1;
+}
+
+/* =========================
+   FILTROS
+   ========================= */
+
+.filtersPanel {
+  flex: 0 0 auto;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(75, 0, 22, 0.035);
+}
+
+.filtersGrid {
+  display: grid;
+  grid-template-columns:
+    minmax(260px, 1.5fr)
+    minmax(170px, 0.8fr)
+    minmax(170px, 0.8fr)
+    auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.filtersGrid label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #5c3340;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.filtersGrid label > span {
+  color: #5c3340;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.filtersGrid select,
+.searchBox {
+  width: 100%;
+  height: 40px;
   border: 1px solid var(--border-2);
   border-radius: 10px;
   background: #fff;
-  color: var(--muted);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  outline: none;
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease;
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
-.searchBox:focus-within,
-.filterBox:focus-within {
+.filtersGrid select {
+  padding: 0 11px;
+  cursor: pointer;
+}
+
+.filtersGrid select:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.filtersGrid select:focus,
+.searchBox:focus-within {
   border-color: var(--vino);
   box-shadow: 0 0 0 3px rgba(75, 0, 22, 0.06);
 }
 
-.searchBox > svg,
-.filterBox > svg {
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+}
+
+.searchBox > svg {
   flex: 0 0 auto;
   color: var(--muted);
-  font-size: 15px;
 }
 
 .searchBox input {
   width: 100%;
   min-width: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--text);
-  font-size: 13px;
-}
-
-.searchBox input::placeholder {
-  color: var(--muted);
-}
-
-.filterBox select {
-  width: 100%;
-  min-width: 0;
   height: 100%;
-  padding: 0 24px 0 0;
+  padding: 0;
   border: none;
   outline: none;
-  appearance: auto;
   background: transparent;
   color: var(--text);
   font-family: inherit;
   font-size: 12.5px;
-  cursor: pointer;
 }
 
-.filterBox select:disabled {
+.searchBox input::placeholder {
   color: var(--muted);
-  cursor: not-allowed;
 }
 
 .clearSearch {
@@ -143,6 +253,13 @@
   color: var(--vino);
 }
 
+.filterActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .clearFiltersButton {
   height: 40px;
   display: inline-flex;
@@ -166,16 +283,9 @@
 }
 
 .clearFiltersButton:hover {
+  transform: translateY(-1px);
   border-color: var(--vino);
   background: var(--vino-f);
-  transform: translateY(-1px);
-}
-
-.toolbarActions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
 }
 
 /* =========================
@@ -194,36 +304,27 @@
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
-  cursor: pointer;
   transition:
-    transform 0.2s ease,
-    background 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .primaryButton {
   border: none !important;
-  background: linear-gradient(
-    135deg,
-    var(--vino),
-    #6a0823
-  ) !important;
+  background: linear-gradient(135deg, var(--vino), #6a0823) !important;
   color: #fff !important;
   box-shadow: 0 8px 18px rgba(75, 0, 22, 0.14);
 }
 
 .primaryButton:hover:not(:disabled) {
   transform: translateY(-1px);
-  background: linear-gradient(
-    135deg,
-    #5d001c,
-    #7c0b2d
-  ) !important;
+  background: linear-gradient(135deg, #5d001c, #7c0b2d) !important;
 }
 
 .primaryButton:disabled {
-  opacity: 0.7;
+  opacity: 0.65;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -252,14 +353,14 @@
   border: 1px solid var(--border);
   border-radius: 16px;
   background: #fff;
-  box-shadow: 0 10px 24px rgba(75, 0, 22, 0.05);
+  box-shadow: 0 8px 22px rgba(75, 0, 22, 0.04);
   scrollbar-width: thin;
   scrollbar-color: var(--vino) transparent;
 }
 
 .tableWrapper::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
 }
 
 .tableWrapper::-webkit-scrollbar-track {
@@ -281,27 +382,26 @@
 .table th {
   position: sticky;
   top: 0;
-  z-index: 3;
-  padding: 11px 14px;
+  z-index: 4;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--border-2);
   background: var(--vino-f);
   color: var(--muted);
-  text-align: center;
+  text-align: left;
   font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  font-weight: 700;
+  letter-spacing: 0.45px;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 .table td {
-  padding: 11px 14px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--border);
   background: #fff;
   color: var(--text);
-  text-align: center;
+  font-size: 12.5px;
   vertical-align: middle;
-  font-size: 13px;
   white-space: nowrap;
   transition: background 0.16s ease;
 }
@@ -311,38 +411,123 @@
 }
 
 .table tbody tr:hover td {
-  background: var(--vino-f);
+  background: #fdfafb;
 }
 
-.table td strong {
+.folio {
   color: var(--vino);
   font-weight: 700;
 }
 
+.communityCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.communityAvatar {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(75, 0, 22, 0.12);
+  border-radius: 10px;
+  background: var(--vino-f);
+  color: var(--vino);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.supportPill {
+  display: inline-flex;
+  max-width: 175px;
+  padding: 5px 10px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--gold-f);
+  color: #7c5b18;
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dateCell,
+.delegateCell {
+  color: var(--muted) !important;
+}
+
 /* =========================
-   ESTADO
+   ESTADOS
    ========================= */
 
 .statusBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 88px;
-  max-width: 160px;
-  padding: 4px 10px;
-  overflow: hidden;
+  gap: 6px;
+  min-width: 92px;
+  padding: 5px 10px;
   border-radius: 999px;
-  background: var(--gold-f);
-  color: #8a6419;
   font-size: 11.5px;
   font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+.statusBadge i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.statusPending {
+  background: #fff3cf;
+  color: #c46a00;
+}
+
+.statusValidated {
+  background: #d8f8e8;
+  color: #05875f;
+}
+
+.statusApproved {
+  background: #dceaff;
+  color: #245fd6;
+}
+
+.statusRejected {
+  background: #fee2e2;
+  color: #c62828;
+}
+
+.statusDefault {
+  background: var(--vino-f);
+  color: var(--vino);
 }
 
 /* =========================
    ACCIONES
    ========================= */
+
+.actionsHeader,
+.actionsCell {
+  position: sticky !important;
+  right: 0;
+  z-index: 5 !important;
+  text-align: center !important;
+  box-shadow: -8px 0 12px rgba(75, 0, 22, 0.025);
+}
+
+.actionsCell {
+  z-index: 2 !important;
+  background: #fff !important;
+}
+
+.table tbody tr:hover .actionsCell {
+  background: #fdfafb !important;
+}
 
 .actions {
   display: flex;
@@ -352,9 +537,8 @@
 }
 
 .actions button {
-  width: 32px;
-  height: 32px;
-  flex: 0 0 auto;
+  width: 31px;
+  height: 31px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -365,12 +549,7 @@
   transition:
     transform 0.18s ease,
     background 0.18s ease,
-    border-color 0.18s ease,
-    color 0.18s ease;
-}
-
-.actions button svg {
-  font-size: 14px;
+    border-color 0.18s ease;
 }
 
 .actions button:hover:not(:disabled) {
@@ -380,7 +559,6 @@
 .actions button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-  transform: none;
 }
 
 .viewAction {
@@ -389,20 +567,10 @@
   color: #2563eb !important;
 }
 
-.viewAction:hover:not(:disabled) {
-  border-color: rgba(37, 99, 235, 0.25) !important;
-  background: #dbeafe !important;
-}
-
 .editAction {
   border-color: rgba(182, 138, 42, 0.15) !important;
   background: var(--gold-f) !important;
   color: #8a6419 !important;
-}
-
-.editAction:hover:not(:disabled) {
-  border-color: rgba(182, 138, 42, 0.3) !important;
-  background: #f8edcc !important;
 }
 
 .deleteAction {
@@ -411,16 +579,10 @@
   color: #dc2626 !important;
 }
 
-.deleteAction:hover:not(:disabled) {
-  border-color: rgba(220, 38, 38, 0.24) !important;
-  background: #fee2e2 !important;
-}
-
 .empty {
-  padding: 40px 24px !important;
+  padding: 42px 24px !important;
   color: var(--muted) !important;
   text-align: center !important;
-  font-weight: 500;
 }
 
 /* =========================
@@ -431,19 +593,30 @@
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 12px;
 }
 
+.pagination > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pagination > div {
+  display: flex;
+  gap: 8px;
+}
+
 .pagination button {
-  height: 36px;
-  padding: 0 14px;
+  height: 34px;
+  padding: 0 13px;
   border: 1px solid var(--border-2);
-  border-radius: 10px;
+  border-radius: 9px;
   background: #fff;
   color: var(--text);
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition:
@@ -459,18 +632,12 @@
 }
 
 .pagination button:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
-.pagination span {
-  color: var(--muted);
-  font-size: 12.5px;
-  font-weight: 600;
-}
-
 /* =========================
-   MODAL FORMULARIO
+   MODAL
    ========================= */
 
 .modalOverlay {
@@ -518,11 +685,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 20px 24px;
-  background: linear-gradient(
-    135deg,
-    var(--vino),
-    #6a0823
-  );
+  background: linear-gradient(135deg, var(--vino), #6a0823);
   color: #fff;
 }
 
@@ -797,24 +960,20 @@
 }
 
 /* =========================
-   TABLET
+   RESPONSIVE
    ========================= */
 
 @media (max-width: 1180px) {
-  .toolbar {
-    grid-template-columns: 1fr;
+  .filtersGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .toolbarActions {
-    justify-content: flex-end;
+  .searchField {
+    grid-column: 1 / -1;
   }
 
-  .filtersContainer {
-    grid-template-columns:
-      minmax(220px, 1.3fr)
-      minmax(160px, 0.8fr)
-      minmax(150px, 0.75fr)
-      auto;
+  .filterActions {
+    grid-column: 1 / -1;
   }
 }
 
@@ -822,27 +981,24 @@
   .page {
     height: calc(100dvh - 56px);
     padding: 12px;
+    overflow: auto;
   }
 
-  .filtersContainer {
+  .panel {
+    height: auto;
+    overflow: visible;
+  }
+
+  .statsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .searchBox {
-    grid-column: 1 / -1;
-  }
-
-  .clearFiltersButton {
-    width: 100%;
-  }
-
-  .toolbarActions,
-  .toolbarActions button {
-    width: 100%;
+  .tableWrapper {
+    min-height: 430px;
   }
 
   .table {
-    min-width: 900px;
+    min-width: 1040px;
   }
 
   .pagination {
@@ -859,10 +1015,6 @@
   }
 }
 
-/* =========================
-   MÓVIL
-   ========================= */
-
 @media (max-width: 640px) {
   .page {
     padding: 10px;
@@ -872,18 +1024,35 @@
     gap: 10px;
   }
 
-  .filtersContainer {
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .statCard {
+    min-height: 70px;
+  }
+
+  .filtersPanel {
+    padding: 12px;
+  }
+
+  .filtersGrid {
     grid-template-columns: 1fr;
   }
 
-  .searchBox,
-  .filterBox,
-  .clearFiltersButton {
-    width: 100%;
+  .searchField,
+  .filterActions {
+    grid-column: auto;
   }
 
-  .searchBox {
-    grid-column: auto;
+  .filterActions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .filterActions button {
+    width: 100%;
   }
 
   .formGrid {
@@ -905,11 +1074,12 @@
     gap: 8px;
   }
 
+  .pagination > div,
   .pagination button {
     width: 100%;
   }
 
-  .pagination span {
+  .pagination > span {
     text-align: center;
   }
 
