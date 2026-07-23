@@ -22,7 +22,7 @@ import {
   Wallet,
 } from "lucide-react";
 
-import { comunidadService } from "@/services/comunidad.service";
+import { comunidadService } from "../../services/comunidad.service";
 import {
   reporteService,
   type FiltroReporte,
