@@ -3,6 +3,7 @@ import {
   HandHelping,
   Building2,
   Wallet,
+  FileBarChart,
 } from "lucide-react";
 
 export const navigationItems = [
@@ -29,5 +30,11 @@ export const navigationItems = [
     title: "Fondos",
     path: "/fondos",
     icon: Wallet,
+  },
+  {
+    id: "reportes.view",
+    title: "Reportes",
+    path: "/reportes",
+    icon: FileBarChart,
   },
 ] as const;

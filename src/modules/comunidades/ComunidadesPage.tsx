@@ -1,5 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  FiCalendar,
   FiDownload,
   FiEdit2,
   FiEye,
@@ -13,7 +19,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { ConfirmModal } from "../../components/ui/confirm-modal/ConfirmModal";
 import { comunidadService } from "@/services/comunidad.service";
-import { reporteService } from "@/services/reporte.service";
+import {
+  reporteService,
+  type FiltroReporte,
+} from "@/services/reporte.service";
 import type {
   Comunidad,
   CrearComunidadRequest,
@@ -33,7 +42,50 @@ const initialForm: CrearComunidadRequest = {
   delegadoIne: null,
 };
 
-type ConfirmVariant = "danger" | "warning" | "success" | "default";
+type ConfirmVariant =
+  | "danger"
+  | "warning"
+  | "success"
+  | "default";
+
+type FormatoReporte = "pdf" | "excel";
+
+type ReporteSeleccionado = {
+  open: boolean;
+  formato: FormatoReporte;
+  comunidad: Comunidad | null;
+};
+
+function obtenerPeriodoInicial() {
+  const hoy = new Date();
+  const anio = hoy.getFullYear();
+  const mes = String(hoy.getMonth() + 1).padStart(2, "0");
+
+  return {
+    periodoInicio: `${anio}-01`,
+    periodoFin: `${anio}-${mes}`,
+  };
+}
+
+function convertirPeriodoAFiltro(
+  periodoInicio: string,
+  periodoFin: string,
+): FiltroReporte {
+  const [anioInicio, mesInicio] = periodoInicio
+    .split("-")
+    .map(Number);
+
+  const [anioFin, mesFin] = periodoFin
+    .split("-")
+    .map(Number);
+
+  return {
+    anioInicio,
+    mesInicio,
+    anioFin,
+    mesFin,
+  };
+}
 
 const initialConfirmacion = {
   open: false,
@@ -86,7 +138,9 @@ type Permiso =
       permiso: string;
     };
 
-function getItems<T>(data: BackendPaginatedResult<T>) {
+function getItems<T>(
+  data: BackendPaginatedResult<T>,
+) {
   return data.Items ?? data.items ?? [];
 }
 
@@ -94,7 +148,10 @@ function getPaginationMeta<T>(
   data: BackendPaginatedResult<T>,
 ): PaginationMeta {
   return {
-    pageNumber: data.PageNumber ?? data.pageNumber ?? 1,
+    pageNumber:
+      data.PageNumber ??
+      data.pageNumber ??
+      1,
     pageSize:
       data.PageSize ??
       data.pageSize ??
@@ -119,7 +176,8 @@ function getPaginationMeta<T>(
 }
 
 function getUserPermissions() {
-  const rawUser = localStorage.getItem("presi2_auth");
+  const rawUser =
+    localStorage.getItem("presi2_auth");
 
   if (!rawUser) return [];
 
@@ -213,13 +271,18 @@ export default function ComunidadesPage() {
   const [editingId, setEditingId] =
     useState<string | null>(null);
 
-  const [query, setQuery] = useState("");
+  const [query, setQuery] =
+    useState("");
 
-  const [mostrarActivas, setMostrarActivas] =
-    useState(true);
+  const [
+    mostrarActivas,
+    setMostrarActivas,
+  ] = useState(true);
 
-  const [paginaActual, setPaginaActual] =
-    useState(1);
+  const [
+    paginaActual,
+    setPaginaActual,
+  ] = useState(1);
 
   const [pagination, setPagination] =
     useState<PaginationMeta>(
@@ -229,14 +292,18 @@ export default function ComunidadesPage() {
   const [totalActivas, setTotalActivas] =
     useState(0);
 
-  const [totalInactivas, setTotalInactivas] =
-    useState(0);
+  const [
+    totalInactivas,
+    setTotalInactivas,
+  ] = useState(0);
 
   const [modalOpen, setModalOpen] =
     useState(false);
 
-  const [ineModalOpen, setIneModalOpen] =
-    useState(false);
+  const [
+    ineModalOpen,
+    setIneModalOpen,
+  ] = useState(false);
 
   const [
     selectedFileName,
@@ -263,17 +330,57 @@ export default function ComunidadesPage() {
     useState(false);
 
   const [
-    generandoReporteGeneral,
-    setGenerandoReporteGeneral,
+    generandoPdfGeneral,
+    setGenerandoPdfGeneral,
   ] = useState(false);
 
   const [
-    generandoReporteComunidadId,
-    setGenerandoReporteComunidadId,
+    generandoExcelGeneral,
+    setGenerandoExcelGeneral,
+  ] = useState(false);
+
+  const [
+    generandoPdfComunidadId,
+    setGenerandoPdfComunidadId,
   ] = useState<string | null>(null);
 
-  const [confirmacion, setConfirmacion] =
-    useState(initialConfirmacion);
+  const [
+    generandoExcelComunidadId,
+    setGenerandoExcelComunidadId,
+  ] = useState<string | null>(null);
+
+  const [
+    confirmacion,
+    setConfirmacion,
+  ] = useState(initialConfirmacion);
+
+  const periodoInicial = useMemo(
+    () => obtenerPeriodoInicial(),
+    [],
+  );
+
+  const [
+    periodoInicio,
+    setPeriodoInicio,
+  ] = useState(
+    periodoInicial.periodoInicio,
+  );
+
+  const [
+    periodoFin,
+    setPeriodoFin,
+  ] = useState(
+    periodoInicial.periodoFin,
+  );
+
+  const [
+    reporteSeleccionado,
+    setReporteSeleccionado,
+  ] = useState<ReporteSeleccionado>({
+    open: false,
+    formato: "pdf",
+    comunidad: null,
+  });
 
   const cargarComunidades = useCallback(
     async (page: number) => {
@@ -296,7 +403,10 @@ export default function ComunidadesPage() {
           inactivasResponse,
         ] = await Promise.all([
           request,
-          comunidadService.obtenerTodas(1, 1),
+          comunidadService.obtenerTodas(
+            1,
+            1,
+          ),
           comunidadService.obtenerInactivas(
             1,
             1,
@@ -312,7 +422,9 @@ export default function ComunidadesPage() {
         const inactivasData =
           inactivasResponse.data as BackendPaginatedResult<Comunidad>;
 
-        setComunidades(getItems(mainData));
+        setComunidades(
+          getItems(mainData),
+        );
 
         setPagination(
           getPaginationMeta(mainData),
@@ -333,7 +445,9 @@ export default function ComunidadesPage() {
         );
 
         setComunidades([]);
-        setPagination(initialPagination);
+        setPagination(
+          initialPagination,
+        );
         setTotalActivas(0);
         setTotalInactivas(0);
       } finally {
@@ -353,7 +467,10 @@ export default function ComunidadesPage() {
 
     return () =>
       window.clearTimeout(timeoutId);
-  }, [cargarComunidades, paginaActual]);
+  }, [
+    cargarComunidades,
+    paginaActual,
+  ]);
 
   const comunidadesFiltradas =
     useMemo(() => {
@@ -361,22 +478,21 @@ export default function ComunidadesPage() {
         .toLowerCase()
         .trim();
 
-      if (!value) return comunidades;
+      if (!value) {
+        return comunidades;
+      }
 
       return comunidades.filter(
-        (comunidad) => {
-          return (
-            comunidad.nombre
-              .toLowerCase()
-              .includes(value) ||
-            comunidad.claveInterna
-              .toLowerCase()
-              .includes(value) ||
-            comunidad.delegado
-              ?.toLowerCase()
-              .includes(value)
-          );
-        },
+        (comunidad) =>
+          comunidad.nombre
+            .toLowerCase()
+            .includes(value) ||
+          comunidad.claveInterna
+            .toLowerCase()
+            .includes(value) ||
+          comunidad.delegado
+            ?.toLowerCase()
+            .includes(value),
       );
     }, [comunidades, query]);
 
@@ -394,6 +510,14 @@ export default function ComunidadesPage() {
     canEdit ||
     canChangeStatus ||
     canExport;
+
+  const generandoReporteGeneral =
+    generandoPdfGeneral ||
+    generandoExcelGeneral;
+
+  const generandoReporteComunidad =
+    generandoPdfComunidadId !== null ||
+    generandoExcelComunidadId !== null;
 
   function cerrarConfirmacion() {
     if (confirmacion.loading) return;
@@ -426,7 +550,9 @@ export default function ComunidadesPage() {
   }
 
   function toggleFiltroActivas() {
-    setMostrarActivas((prev) => !prev);
+    setMostrarActivas(
+      (prev) => !prev,
+    );
     setPaginaActual(1);
     setQuery("");
   }
@@ -434,8 +560,13 @@ export default function ComunidadesPage() {
   function openModal(
     comunidad?: Comunidad,
   ) {
-    if (comunidad && !canEdit) return;
-    if (!comunidad && !canCreate) return;
+    if (comunidad && !canEdit) {
+      return;
+    }
+
+    if (!comunidad && !canCreate) {
+      return;
+    }
 
     if (comunidad) {
       setEditingId(comunidad.id);
@@ -467,6 +598,13 @@ export default function ComunidadesPage() {
     setEditingId(null);
     setForm(initialForm);
     setSelectedFileName("");
+  }
+
+  function closeIneModal() {
+    setIneModalOpen(false);
+    setSelectedIne(null);
+    setSelectedCommunityName("");
+    setSelectedDelegado("");
   }
 
   function handleTextChange(
@@ -521,9 +659,7 @@ export default function ComunidadesPage() {
       );
     }
 
-    if (
-      name === "claveInterna"
-    ) {
+    if (name === "claveInterna") {
       formattedValue =
         value.toUpperCase();
     }
@@ -539,8 +675,13 @@ export default function ComunidadesPage() {
   ) {
     event.preventDefault();
 
-    if (editingId && !canEdit) return;
-    if (!editingId && !canCreate) return;
+    if (editingId && !canEdit) {
+      return;
+    }
+
+    if (!editingId && !canCreate) {
+      return;
+    }
 
     if (
       form.codigoPostal.length !== 5
@@ -576,7 +717,8 @@ export default function ComunidadesPage() {
             nombre: form.nombre,
             codigoPostal:
               form.codigoPostal,
-            delegado: form.delegado,
+            delegado:
+              form.delegado,
             telefonoDelegado:
               form.telefonoDelegado,
           },
@@ -700,7 +842,94 @@ export default function ComunidadesPage() {
     setIneModalOpen(true);
   }
 
-  async function descargarReporteGeneral() {
+  function abrirModalReporte(
+    formato: FormatoReporte,
+    comunidad: Comunidad | null = null,
+  ) {
+    if (!canExport) return;
+
+    setReporteSeleccionado({
+      open: true,
+      formato,
+      comunidad,
+    });
+  }
+
+  function cerrarModalReporte() {
+    if (
+      generandoReporteGeneral ||
+      generandoReporteComunidad
+    ) {
+      return;
+    }
+
+    setReporteSeleccionado({
+      open: false,
+      formato: "pdf",
+      comunidad: null,
+    });
+  }
+
+  async function generarReporteConPeriodo(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    if (
+      !periodoInicio ||
+      !periodoFin
+    ) {
+      toast.error(
+        "Selecciona el periodo inicial y final.",
+      );
+      return;
+    }
+
+    if (periodoInicio > periodoFin) {
+      toast.error(
+        "El periodo inicial no puede ser posterior al periodo final.",
+      );
+      return;
+    }
+
+    const filtro = convertirPeriodoAFiltro(
+      periodoInicio,
+      periodoFin,
+    );
+
+    const {
+      formato,
+      comunidad,
+    } = reporteSeleccionado;
+
+    cerrarModalReporte();
+
+    if (comunidad) {
+      if (formato === "pdf") {
+        await descargarPdfComunidad(
+          comunidad,
+          filtro,
+        );
+      } else {
+        await descargarExcelComunidad(
+          comunidad,
+          filtro,
+        );
+      }
+
+      return;
+    }
+
+    if (formato === "pdf") {
+      await descargarPdfGeneral(filtro);
+    } else {
+      await descargarExcelGeneral(filtro);
+    }
+  }
+
+  async function descargarPdfGeneral(
+    filtro: FiltroReporte = {},
+  ) {
     if (
       !canExport ||
       generandoReporteGeneral
@@ -709,55 +938,118 @@ export default function ComunidadesPage() {
     }
 
     try {
-      setGenerandoReporteGeneral(true);
+      setGenerandoPdfGeneral(true);
 
       await reporteService.descargarReporteAnual(
-        {},
+        filtro,
       );
 
       toast.success(
-        "Reporte general descargado correctamente.",
+        "Reporte general PDF descargado correctamente.",
       );
     } catch (error) {
       toast.error(
         getApiErrorMessage(error),
       );
     } finally {
-      setGenerandoReporteGeneral(
-        false,
-      );
+      setGenerandoPdfGeneral(false);
     }
   }
 
-  async function descargarReporteComunidad(
-    comunidad: Comunidad,
+  async function descargarExcelGeneral(
+    filtro: FiltroReporte = {},
   ) {
     if (
       !canExport ||
-      generandoReporteComunidadId
+      generandoReporteGeneral
     ) {
       return;
     }
 
     try {
-      setGenerandoReporteComunidadId(
-        comunidad.id,
-      );
+      setGenerandoExcelGeneral(true);
 
-      await reporteService.descargarReportePorComunidad(
-        comunidad.id,
-        {},
+      await reporteService.exportarComunidadesExcel(
+        filtro,
       );
 
       toast.success(
-        `Reporte de ${comunidad.nombre} descargado correctamente.`,
+        "Reporte general Excel descargado correctamente.",
       );
     } catch (error) {
       toast.error(
         getApiErrorMessage(error),
       );
     } finally {
-      setGenerandoReporteComunidadId(
+      setGenerandoExcelGeneral(false);
+    }
+  }
+
+  async function descargarPdfComunidad(
+    comunidad: Comunidad,
+    filtro: FiltroReporte = {},
+  ) {
+    if (
+      !canExport ||
+      generandoReporteComunidad
+    ) {
+      return;
+    }
+
+    try {
+      setGenerandoPdfComunidadId(
+        comunidad.id,
+      );
+
+      await reporteService.descargarReportePorComunidad(
+        comunidad.id,
+        filtro,
+      );
+
+      toast.success(
+        `Reporte PDF de ${comunidad.nombre} descargado correctamente.`,
+      );
+    } catch (error) {
+      toast.error(
+        getApiErrorMessage(error),
+      );
+    } finally {
+      setGenerandoPdfComunidadId(
+        null,
+      );
+    }
+  }
+
+  async function descargarExcelComunidad(
+    comunidad: Comunidad,
+    filtro: FiltroReporte = {},
+  ) {
+    if (
+      !canExport ||
+      generandoReporteComunidad
+    ) {
+      return;
+    }
+
+    try {
+      setGenerandoExcelComunidadId(
+        comunidad.id,
+      );
+
+      await reporteService.exportarApoyosPorComunidadExcel(
+        comunidad.id,
+        filtro,
+      );
+
+      toast.success(
+        `Reporte Excel de ${comunidad.nombre} descargado correctamente.`,
+      );
+    } catch (error) {
+      toast.error(
+        getApiErrorMessage(error),
+      );
+    } finally {
+      setGenerandoExcelComunidadId(
         null,
       );
     }
@@ -789,26 +1081,49 @@ export default function ComunidadesPage() {
             }
           >
             {canExport && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className={
-                  styles.secondaryButton
-                }
-                disabled={
-                  generandoReporteGeneral
-                }
-                onClick={() =>
-                  void descargarReporteGeneral()
-                }
-              >
-                <FiDownload />
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className={
+                    styles.secondaryButton
+                  }
+                  disabled={
+                    generandoReporteGeneral
+                  }
+                  onClick={() =>
+                    abrirModalReporte("pdf")
+                  }
+                >
+                  <FiFileText />
 
-                {generandoReporteGeneral
-                  ? "Generando..."
-                  : "Reporte general"}
-              </Button>
+                  {generandoPdfGeneral
+                    ? "Generando PDF..."
+                    : "Reporte PDF"}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className={
+                    styles.secondaryButton
+                  }
+                  disabled={
+                    generandoReporteGeneral
+                  }
+                  onClick={() =>
+                    abrirModalReporte("excel")
+                  }
+                >
+                  <FiDownload />
+
+                  {generandoExcelGeneral
+                    ? "Generando Excel..."
+                    : "Exportar Excel"}
+                </Button>
+              </>
             )}
 
             {canCreate && (
@@ -1046,33 +1361,63 @@ export default function ComunidadesPage() {
                             )}
 
                             {canExport && (
-                              <button
-                                type="button"
-                                className={
-                                  styles.actionReport
-                                }
-                                title={`Descargar reporte de ${comunidad.nombre}`}
-                                disabled={
-                                  generandoReporteComunidadId ===
-                                  comunidad.id
-                                }
-                                onClick={() =>
-                                  void descargarReporteComunidad(
-                                    comunidad,
-                                  )
-                                }
-                              >
-                                {generandoReporteComunidadId ===
-                                comunidad.id ? (
-                                  <span
-                                    className={
-                                      styles.actionLoader
-                                    }
-                                  />
-                                ) : (
-                                  <FiFileText />
-                                )}
-                              </button>
+                              <>
+                                <button
+                                  type="button"
+                                  className={
+                                    styles.actionReport
+                                  }
+                                  title={`Descargar PDF de ${comunidad.nombre}`}
+                                  disabled={
+                                    generandoReporteComunidad
+                                  }
+                                  onClick={() =>
+                                    abrirModalReporte(
+                                      "pdf",
+                                      comunidad,
+                                    )
+                                  }
+                                >
+                                  {generandoPdfComunidadId ===
+                                  comunidad.id ? (
+                                    <span
+                                      className={
+                                        styles.actionLoader
+                                      }
+                                    />
+                                  ) : (
+                                    <FiFileText />
+                                  )}
+                                </button>
+
+                                <button
+                                  type="button"
+                                  className={
+                                    styles.actionExcel
+                                  }
+                                  title={`Descargar Excel de ${comunidad.nombre}`}
+                                  disabled={
+                                    generandoReporteComunidad
+                                  }
+                                  onClick={() =>
+                                    abrirModalReporte(
+                                      "excel",
+                                      comunidad,
+                                    )
+                                  }
+                                >
+                                  {generandoExcelComunidadId ===
+                                  comunidad.id ? (
+                                    <span
+                                      className={
+                                        styles.actionLoader
+                                      }
+                                    />
+                                  ) : (
+                                    <FiDownload />
+                                  )}
+                                </button>
+                              </>
                             )}
 
                             {canEdit && (
@@ -1447,11 +1792,8 @@ export default function ComunidadesPage() {
 
               <button
                 type="button"
-                onClick={() =>
-                  setIneModalOpen(
-                    false,
-                  )
-                }
+                onClick={closeIneModal}
+                title="Cerrar"
               >
                 <FiX />
               </button>
@@ -1552,11 +1894,7 @@ export default function ComunidadesPage() {
 
               <Button
                 type="button"
-                onClick={() =>
-                  setIneModalOpen(
-                    false,
-                  )
-                }
+                onClick={closeIneModal}
                 className={
                   styles.primaryButton
                 }
@@ -1565,6 +1903,149 @@ export default function ComunidadesPage() {
               </Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {reporteSeleccionado.open && (
+        <div className={styles.modalBg}>
+          <form
+            className={styles.modal}
+            onSubmit={
+              generarReporteConPeriodo
+            }
+          >
+            <div
+              className={
+                styles.modalHero
+              }
+            >
+              <div
+                className={
+                  styles.modalIcon
+                }
+              >
+                <FiCalendar />
+              </div>
+
+              <div>
+                <h2>
+                  Seleccionar periodo
+                </h2>
+
+                <p>
+                  {reporteSeleccionado.comunidad
+                    ? `Reporte de ${reporteSeleccionado.comunidad.nombre}`
+                    : "Reporte general de comunidades"}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className={
+                  styles.closeButton
+                }
+                onClick={
+                  cerrarModalReporte
+                }
+                title="Cerrar"
+              >
+                <FiX />
+              </button>
+            </div>
+
+            <div
+              className={
+                styles.modalBody
+              }
+            >
+              <div
+                className={
+                  styles.formRow
+                }
+              >
+                <label>
+                  Desde <span>*</span>
+
+                  <input
+                    type="month"
+                    value={
+                      periodoInicio
+                    }
+                    max={periodoFin}
+                    onChange={(event) =>
+                      setPeriodoInicio(
+                        event.target.value,
+                      )
+                    }
+                    required
+                  />
+                </label>
+
+                <label>
+                  Hasta <span>*</span>
+
+                  <input
+                    type="month"
+                    value={periodoFin}
+                    min={periodoInicio}
+                    onChange={(event) =>
+                      setPeriodoFin(
+                        event.target.value,
+                      )
+                    }
+                    required
+                  />
+                </label>
+              </div>
+
+              <p
+                className={
+                  styles.muted
+                }
+              >
+                El reporte incluirá
+                desde el primer día del
+                mes inicial hasta el
+                último día del mes
+                final.
+              </p>
+            </div>
+
+            <div
+              className={
+                styles.modalFoot
+              }
+            >
+              <Button
+                type="button"
+                variant="outline"
+                onClick={
+                  cerrarModalReporte
+                }
+                className={
+                  styles.cancelButton
+                }
+              >
+                Cancelar
+              </Button>
+
+              <Button
+                type="submit"
+                disabled={
+                  generandoReporteGeneral ||
+                  generandoReporteComunidad
+                }
+                className={
+                  styles.saveButton
+                }
+              >
+                {reporteSeleccionado.formato ===
+                "pdf"
+                  ? "Generar PDF"
+                  : "Generar Excel"}
+              </Button>
+            </div>
+          </form>
         </div>
       )}
 

@@ -1,5 +1,9 @@
 import { useMemo, useState } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import {
+  NavLink,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import {
   FiHome,
   FiChevronDown,
@@ -8,6 +12,8 @@ import {
   FiSettings,
   FiMapPin,
   FiHeart,
+  FiBarChart2,
+  FiDollarSign,
 } from "react-icons/fi";
 
 import styles from "./Sidebar.module.css";
@@ -32,7 +38,8 @@ type SidebarProps = {
 };
 
 function getAuthUser() {
-  const rawUser = localStorage.getItem("presi2_auth");
+  const rawUser =
+    localStorage.getItem("presi2_auth");
 
   if (!rawUser) {
     return {
@@ -45,16 +52,31 @@ function getAuthUser() {
     const user = JSON.parse(rawUser) as {
       correo?: string;
       email?: string;
-      permisos?: ({ permiso: string } | string)[];
-      permissions?: ({ permiso: string } | string)[];
+      permisos?: (
+        | { permiso: string }
+        | string
+      )[];
+      permissions?: (
+        | { permiso: string }
+        | string
+      )[];
     };
 
-    const permisosRaw = user.permisos ?? user.permissions ?? [];
+    const permisosRaw =
+      user.permisos ??
+      user.permissions ??
+      [];
 
     return {
-      email: user.correo ?? user.email ?? "",
-      permissions: permisosRaw.map((permiso) =>
-        typeof permiso === "string" ? permiso : permiso.permiso,
+      email:
+        user.correo ??
+        user.email ??
+        "",
+      permissions: permisosRaw.map(
+        (permiso) =>
+          typeof permiso === "string"
+            ? permiso
+            : permiso.permiso,
       ),
     };
   } catch {
@@ -65,10 +87,18 @@ function getAuthUser() {
   }
 }
 
-function isInteractiveTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) return false;
+function isInteractiveTarget(
+  target: EventTarget | null,
+) {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
 
-  return Boolean(target.closest("button, a, input, textarea, select, label"));
+  return Boolean(
+    target.closest(
+      "button, a, input, textarea, select, label",
+    ),
+  );
 }
 
 export default function Sidebar({
@@ -79,18 +109,20 @@ export default function Sidebar({
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { email, permissions } = getAuthUser();
+  const { email, permissions } =
+    getAuthUser();
 
-  const allowedModules = useMemo(() => new Set(permissions), [permissions]);
-
-  const [catalogosOpen, setCatalogosOpen] = useState(
-    location.pathname.startsWith("/comunidades") ||
-      location.pathname.startsWith("/fondos"),
+  const allowedModules = useMemo(
+    () => new Set(permissions),
+    [permissions],
   );
 
-  const [adminOpen, setAdminOpen] = useState(
-    location.pathname.startsWith("/administracion"),
-  );
+  const [adminOpen, setAdminOpen] =
+    useState(
+      location.pathname.startsWith(
+        "/administracion",
+      ),
+    );
 
   const menu: MenuItem[] = useMemo(
     () => [
@@ -107,21 +139,22 @@ export default function Sidebar({
         icon: <FiHeart />,
       },
       {
-        id: "catalogos.group",
-        label: "Catálogos",
+        id: "reportes.view",
+        label: "Reportes",
+        to: "/reportes",
+        icon: <FiBarChart2 />,
+      },
+      {
+        id: "comunidades.view",
+        label: "Comunidades",
+        to: "/comunidades",
         icon: <FiMapPin />,
-        children: [
-          {
-            id: "comunidades.view",
-            label: "Comunidades",
-            to: "/comunidades",
-          },
-          {
-            id: "fondos.view",
-            label: "Fondos",
-            to: "/fondos",
-          },
-        ],
+      },
+      {
+        id: "fondos.view",
+        label: "Fondos",
+        to: "/fondos",
+        icon: <FiDollarSign />,
       },
       {
         id: "administracion.group",
@@ -150,15 +183,21 @@ export default function Sidebar({
   );
 
   const filteredMenu = useMemo(() => {
-    const canSee = (id: string) => allowedModules.has(id);
+    const canSee = (id: string) =>
+      allowedModules.has(id);
 
     return menu
       .map((item) => {
         if (!item.children) {
-          return canSee(item.id) ? item : null;
+          return canSee(item.id)
+            ? item
+            : null;
         }
 
-        const children = item.children.filter((child) => canSee(child.id));
+        const children =
+          item.children.filter((child) =>
+            canSee(child.id),
+          );
 
         if (children.length === 0) {
           return null;
@@ -169,12 +208,19 @@ export default function Sidebar({
           children,
         };
       })
-      .filter((item): item is MenuItem => Boolean(item));
+      .filter(
+        (item): item is MenuItem =>
+          Boolean(item),
+      );
   }, [menu, allowedModules]);
 
   function handleLogout() {
-    localStorage.removeItem("presi2_auth");
-    localStorage.removeItem("presi2_token");
+    localStorage.removeItem(
+      "presi2_auth",
+    );
+    localStorage.removeItem(
+      "presi2_token",
+    );
 
     onNavigate?.();
 
@@ -183,55 +229,44 @@ export default function Sidebar({
     });
   }
 
-  function handleGroupClick(label: string) {
-    if (collapsed && onBackgroundToggle) {
+  function handleGroupClick() {
+    if (
+      collapsed &&
+      onBackgroundToggle
+    ) {
       onBackgroundToggle();
     }
 
-    if (label === "Catálogos") {
-      setCatalogosOpen((prev) => !prev);
-    }
-
-    if (label === "Administración") {
-      setAdminOpen((prev) => !prev);
-    }
+    setAdminOpen((prev) => !prev);
   }
 
-  function shouldShowSubmenu(label: string) {
-    if (collapsed) return false;
-
-    if (label === "Catálogos") {
-      return catalogosOpen;
+  function shouldShowSubmenu() {
+    if (collapsed) {
+      return false;
     }
 
-    if (label === "Administración") {
-      return adminOpen;
-    }
-
-    return false;
-  }
-
-  function isGroupOpen(label: string) {
-    if (label === "Catálogos") {
-      return catalogosOpen;
-    }
-
-    if (label === "Administración") {
-      return adminOpen;
-    }
-
-    return false;
+    return adminOpen;
   }
 
   return (
     <aside
-      className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}
+      className={`${styles.sidebar} ${
+        collapsed
+          ? styles.collapsed
+          : ""
+      }`}
       onPointerDownCapture={(event) => {
-        if (!onBackgroundToggle) return;
+        if (!onBackgroundToggle) {
+          return;
+        }
 
-        const target = event.target as HTMLElement | null;
+        const target =
+          event.target as HTMLElement | null;
 
-        if (!target || isInteractiveTarget(target)) {
+        if (
+          !target ||
+          isInteractiveTarget(target)
+        ) {
           return;
         }
 
@@ -257,42 +292,85 @@ export default function Sidebar({
           />
         </div>
 
-        <div className={styles.goldLine} />
+        <div
+          className={styles.goldLine}
+        />
 
         <div className={styles.userRow}>
-          <span className={styles.userIcon}>
+          <span
+            className={styles.userIcon}
+          >
             <FiUser />
           </span>
 
-          {!collapsed && <span className={styles.userName}>{email}</span>}
+          {!collapsed && (
+            <span
+              className={styles.userName}
+            >
+              {email}
+            </span>
+          )}
         </div>
 
-        <div className={styles.goldLine} />
+        <div
+          className={styles.goldLine}
+        />
       </div>
 
-      <div className={styles.scrollArea}>
+      <div
+        className={styles.scrollArea}
+      >
         <nav className={styles.nav}>
           {filteredMenu.map((item) =>
             item.children ? (
-              <div key={item.id} className={styles.group}>
+              <div
+                key={item.id}
+                className={styles.group}
+              >
                 <button
                   type="button"
-                  className={styles.itemBtn}
-                  data-permission-id={item.id}
-                  onClick={() => handleGroupClick(item.label)}
+                  className={
+                    styles.itemBtn
+                  }
+                  data-permission-id={
+                    item.id
+                  }
+                  onClick={
+                    handleGroupClick
+                  }
                 >
-                  <span className={styles.left}>
-                    <span className={styles.icon}>{item.icon}</span>
+                  <span
+                    className={
+                      styles.left
+                    }
+                  >
+                    <span
+                      className={
+                        styles.icon
+                      }
+                    >
+                      {item.icon}
+                    </span>
 
                     {!collapsed && (
-                      <span className={styles.label}>{item.label}</span>
+                      <span
+                        className={
+                          styles.label
+                        }
+                      >
+                        {item.label}
+                      </span>
                     )}
                   </span>
 
                   {!collapsed && (
                     <span
-                      className={`${styles.chev} ${
-                        isGroupOpen(item.label) ? styles.chevOpen : ""
+                      className={`${
+                        styles.chev
+                      } ${
+                        adminOpen
+                          ? styles.chevOpen
+                          : ""
                       }`}
                     >
                       <FiChevronDown />
@@ -300,27 +378,39 @@ export default function Sidebar({
                   )}
                 </button>
 
-                {shouldShowSubmenu(item.label) && (
+                {shouldShowSubmenu() && (
                   <div
-                    className={`${styles.submenu} ${
-                      isGroupOpen(item.label) ? styles.submenuOpen : ""
+                    className={`${
+                      styles.submenu
+                    } ${
+                      adminOpen
+                        ? styles.submenuOpen
+                        : ""
                     }`}
                   >
-                    {item.children.map((child) => (
-                      <NavLink
-                        key={child.id}
-                        to={child.to}
-                        data-permission-id={child.id}
-                        onClick={() => onNavigate?.()}
-                        className={({ isActive }) =>
-                          isActive
-                            ? `${styles.subItem} ${styles.active}`
-                            : styles.subItem
-                        }
-                      >
-                        {child.label}
-                      </NavLink>
-                    ))}
+                    {item.children.map(
+                      (child) => (
+                        <NavLink
+                          key={child.id}
+                          to={child.to}
+                          data-permission-id={
+                            child.id
+                          }
+                          onClick={() =>
+                            onNavigate?.()
+                          }
+                          className={({
+                            isActive,
+                          }) =>
+                            isActive
+                              ? `${styles.subItem} ${styles.active}`
+                              : styles.subItem
+                          }
+                        >
+                          {child.label}
+                        </NavLink>
+                      ),
+                    )}
                   </div>
                 )}
               </div>
@@ -328,16 +418,36 @@ export default function Sidebar({
               <NavLink
                 key={item.id}
                 to={item.to!}
-                data-permission-id={item.id}
-                onClick={() => onNavigate?.()}
-                className={({ isActive }) =>
-                  isActive ? `${styles.item} ${styles.active}` : styles.item
+                data-permission-id={
+                  item.id
+                }
+                onClick={() =>
+                  onNavigate?.()
+                }
+                className={({
+                  isActive,
+                }) =>
+                  isActive
+                    ? `${styles.item} ${styles.active}`
+                    : styles.item
                 }
               >
-                <span className={styles.icon}>{item.icon}</span>
+                <span
+                  className={
+                    styles.icon
+                  }
+                >
+                  {item.icon}
+                </span>
 
                 {!collapsed && (
-                  <span className={styles.label}>{item.label}</span>
+                  <span
+                    className={
+                      styles.label
+                    }
+                  >
+                    {item.label}
+                  </span>
                 )}
               </NavLink>
             ),
@@ -348,14 +458,24 @@ export default function Sidebar({
       <div className={styles.bottom}>
         <button
           type="button"
-          className={styles.bottomBtn}
+          className={
+            styles.bottomBtn
+          }
           onClick={handleLogout}
         >
-          <span className={styles.icon}>
+          <span
+            className={styles.icon}
+          >
             <FiLogOut />
           </span>
 
-          {!collapsed && <span className={styles.label}>Cerrar sesión</span>}
+          {!collapsed && (
+            <span
+              className={styles.label}
+            >
+              Cerrar sesión
+            </span>
+          )}
         </button>
       </div>
     </aside>

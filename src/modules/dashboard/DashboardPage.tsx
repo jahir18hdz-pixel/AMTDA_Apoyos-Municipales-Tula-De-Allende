@@ -119,7 +119,7 @@ function obtenerClaseEstado(estado?: string | null) {
 function crearGradienteDona(distribucion: DistribucionPorFondo[]) {
   const total = distribucion.reduce(
     (acumulado, item) => acumulado + item.cantidad,
-    0
+    0,
   );
 
   if (total <= 0) {
@@ -135,7 +135,9 @@ function crearGradienteDona(distribucion: DistribucionPorFondo[]) {
 
     porcentajeActual = fin;
 
-    return `${COLORES_FONDOS[index % COLORES_FONDOS.length]} ${inicio}% ${fin}%`;
+    return `${
+      COLORES_FONDOS[index % COLORES_FONDOS.length]
+    } ${inicio}% ${fin}%`;
   });
 
   return `conic-gradient(${segmentos.join(", ")})`;
@@ -148,32 +150,42 @@ type DatosGraficaMes = {
 };
 
 function agruparApoyosPorMes(datos: ApoyoPorMes[]) {
-  const fondos = Array.from(new Set(datos.map((item) => item.fondo)));
+  const fondos = Array.from(
+    new Set(datos.map((item) => item.fondo)),
+  );
 
-  const meses: DatosGraficaMes[] = Array.from({ length: 12 }, (_, index) => {
-    const mes = index + 1;
-    const registrosMes = datos.filter((item) => item.mes === mes);
+  const meses: DatosGraficaMes[] = Array.from(
+    { length: 12 },
+    (_, index) => {
+      const mes = index + 1;
 
-    const cantidadesPorFondo = fondos.reduce<Record<string, number>>(
-      (resultado, fondo) => {
+      const registrosMes = datos.filter(
+        (item) => item.mes === mes,
+      );
+
+      const cantidadesPorFondo = fondos.reduce<
+        Record<string, number>
+      >((resultado, fondo) => {
         resultado[fondo] = registrosMes
           .filter((item) => item.fondo === fondo)
-          .reduce((total, item) => total + item.cantidad, 0);
+          .reduce(
+            (total, item) => total + item.cantidad,
+            0,
+          );
 
         return resultado;
-      },
-      {}
-    );
+      }, {});
 
-    return {
-      mes,
-      fondos: cantidadesPorFondo,
-      total: Object.values(cantidadesPorFondo).reduce(
-        (total, cantidad) => total + cantidad,
-        0
-      ),
-    };
-  });
+      return {
+        mes,
+        fondos: cantidadesPorFondo,
+        total: Object.values(cantidadesPorFondo).reduce(
+          (total, cantidad) => total + cantidad,
+          0,
+        ),
+      };
+    },
+  );
 
   return {
     fondos,
@@ -183,8 +195,11 @@ function agruparApoyosPorMes(datos: ApoyoPorMes[]) {
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+
   const anioActual = new Date().getFullYear();
-  const [anioSeleccionado, setAnioSeleccionado] = useState(anioActual);
+
+  const [anioSeleccionado, setAnioSeleccionado] =
+    useState(anioActual);
 
   const resumenQuery = useQuery({
     queryKey: ["dashboard", "resumen"],
@@ -197,7 +212,11 @@ export default function DashboardPage() {
   });
 
   const apoyosPorMesQuery = useQuery({
-    queryKey: ["dashboard", "apoyos-por-mes", anioSeleccionado],
+    queryKey: [
+      "dashboard",
+      "apoyos-por-mes",
+      anioSeleccionado,
+    ],
     queryFn: () => obtenerApoyosPorMes(anioSeleccionado),
   });
 
@@ -212,8 +231,13 @@ export default function DashboardPage() {
   });
 
   const topComunidadesQuery = useQuery({
-    queryKey: ["dashboard", "top-comunidades", anioSeleccionado],
-    queryFn: () => obtenerTopComunidades(anioSeleccionado, 5),
+    queryKey: [
+      "dashboard",
+      "top-comunidades",
+      anioSeleccionado,
+    ],
+    queryFn: () =>
+      obtenerTopComunidades(anioSeleccionado, 5),
   });
 
   const cargando =
@@ -233,41 +257,55 @@ export default function DashboardPage() {
     topComunidadesQuery.isError;
 
   const resumen = resumenQuery.data;
+
   const recientes = recientesQuery.data ?? [];
+
   const distribucion = distribucionQuery.data ?? [];
-  const montosPorComunidad = montoPorComunidadQuery.data ?? [];
+
+  const montosPorComunidad =
+    montoPorComunidadQuery.data ?? [];
+
   const topComunidades = topComunidadesQuery.data;
+
   const apoyosPorMes = apoyosPorMesQuery.data ?? [];
 
   const datosGraficaMensual = useMemo(
-    () => agruparApoyosPorMes(apoyosPorMes),
-    [apoyosPorMes]
+    () =>
+      agruparApoyosPorMes(
+        apoyosPorMesQuery.data ?? [],
+      ),
+    [apoyosPorMesQuery.data],
   );
 
   const totalDistribucion = useMemo(
     () =>
-      distribucion.reduce(
-        (acumulado, elemento) => acumulado + elemento.cantidad,
-        0
+      (distribucionQuery.data ?? []).reduce(
+        (acumulado, elemento) =>
+          acumulado + elemento.cantidad,
+        0,
       ),
-    [distribucion]
+    [distribucionQuery.data],
   );
 
   const maximoMensual = Math.max(
-    ...datosGraficaMensual.meses.map((item) => item.total),
-    1
+    ...datosGraficaMensual.meses.map(
+      (item) => item.total,
+    ),
+    1,
   );
 
   const maximoMontoComunidad = Math.max(
-    ...montosPorComunidad.slice(0, 5).map((item) => item.montoTotal),
-    1
+    ...montosPorComunidad
+      .slice(0, 5)
+      .map((item) => item.montoTotal),
+    1,
   );
 
   const maximoTopComunidades = Math.max(
     ...(topComunidades?.topComunidades ?? []).map(
-      (item) => item.totalApoyos
+      (item) => item.totalApoyos,
     ),
-    1
+    1,
   );
 
   const estadosTotal =
@@ -277,7 +315,7 @@ export default function DashboardPage() {
 
   const aniosDisponibles = Array.from(
     { length: 6 },
-    (_, index) => anioActual - index
+    (_, index) => anioActual - index,
   );
 
   function recargarDashboard() {
@@ -291,13 +329,46 @@ export default function DashboardPage() {
     ]);
   }
 
+  function irARegistroApoyos(
+    estado:
+      | "todos"
+      | "pendientes"
+      | "validados"
+      | "aprobados" = "todos",
+  ) {
+    navigate(`/apoyos/registro?estado=${estado}`);
+  }
+
+  function irAComunidad(comunidad: string) {
+    navigate(
+      `/apoyos/registro?comunidad=${encodeURIComponent(
+        comunidad,
+      )}`,
+    );
+  }
+
+  function irAFondo(fondo: string) {
+    navigate(
+      `/apoyos/registro?apoyo=${encodeURIComponent(
+        fondo,
+      )}`,
+    );
+  }
+
   if (cargando) {
     return (
       <main className={styles.page}>
         <div className={styles.loadingState}>
-          <LoaderCircle className={styles.spinner} size={34} />
+          <LoaderCircle
+            className={styles.spinner}
+            size={34}
+          />
+
           <strong>Cargando dashboard</strong>
-          <span>Estamos preparando la información más reciente.</span>
+
+          <span>
+            Estamos preparando la información más reciente.
+          </span>
         </div>
       </main>
     );
@@ -306,17 +377,18 @@ export default function DashboardPage() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        
-
         <div className={styles.headerActions}>
           <label className={styles.yearControl}>
             <CalendarDays size={17} />
+
             <span>Año</span>
 
             <select
               value={anioSeleccionado}
               onChange={(event) =>
-                setAnioSeleccionado(Number(event.target.value))
+                setAnioSeleccionado(
+                  Number(event.target.value),
+                )
               }
             >
               {aniosDisponibles.map((anio) => (
@@ -343,9 +415,17 @@ export default function DashboardPage() {
             <RefreshCw
               size={17}
               className={
-                resumenQuery.isFetching ? styles.refreshing : undefined
+                resumenQuery.isFetching ||
+                montoPorComunidadQuery.isFetching ||
+                apoyosPorMesQuery.isFetching ||
+                distribucionQuery.isFetching ||
+                recientesQuery.isFetching ||
+                topComunidadesQuery.isFetching
+                  ? styles.refreshing
+                  : undefined
               }
             />
+
             Actualizar
           </button>
         </div>
@@ -354,180 +434,317 @@ export default function DashboardPage() {
       {hayError && (
         <section className={styles.errorBanner}>
           <div>
-            <strong>No fue posible cargar toda la información</strong>
+            <strong>
+              No fue posible cargar toda la información
+            </strong>
+
             <span>
-              Algunos indicadores podrían no estar disponibles temporalmente.
+              Algunos indicadores podrían no estar
+              disponibles temporalmente.
             </span>
           </div>
 
-          <button type="button" onClick={recargarDashboard}>
+          <button
+            type="button"
+            onClick={recargarDashboard}
+          >
             Intentar nuevamente
           </button>
         </section>
       )}
 
       <section className={styles.kpiGrid}>
-        <article className={styles.kpiCard}>
-          <div className={`${styles.kpiIcon} ${styles.kpiWine}`}>
+        <button
+          type="button"
+          className={styles.kpiCard}
+          onClick={() => irARegistroApoyos("todos")}
+          aria-label="Ver todos los apoyos registrados"
+        >
+          <div
+            className={`${styles.kpiIcon} ${styles.kpiWine}`}
+          >
             <HandHeart size={21} />
           </div>
 
           <div className={styles.kpiContent}>
             <span>Total de apoyos</span>
-            <strong>{formatoNumero(resumen?.totalApoyos ?? 0)}</strong>
+
+            <strong>
+              {formatoNumero(resumen?.totalApoyos ?? 0)}
+            </strong>
 
             <small>
               <TrendingUp size={14} />
-              {formatoNumero(resumen?.apoyosEsteMes ?? 0)} este mes
+
+              {formatoNumero(
+                resumen?.apoyosEsteMes ?? 0,
+              )}{" "}
+              este mes
             </small>
           </div>
-        </article>
 
-        <article className={styles.kpiCard}>
-          <div className={`${styles.kpiIcon} ${styles.kpiGold}`}>
+          <ArrowRight
+            className={styles.kpiArrow}
+            size={19}
+          />
+        </button>
+
+        <button
+          type="button"
+          className={styles.kpiCard}
+          onClick={() => navigate("/comunidades")}
+          aria-label="Ver comunidades atendidas"
+        >
+          <div
+            className={`${styles.kpiIcon} ${styles.kpiGold}`}
+          >
             <MapPin size={21} />
           </div>
 
           <div className={styles.kpiContent}>
             <span>Comunidades atendidas</span>
+
             <strong>
-              {formatoNumero(resumen?.comunidadesAtendidas ?? 0)}
+              {formatoNumero(
+                resumen?.comunidadesAtendidas ?? 0,
+              )}
             </strong>
 
             <small>
               <UsersRound size={14} />
-              {formatoNumero(resumen?.comunidadesNuevasEsteMes ?? 0)} nuevas
-              este mes
+
+              {formatoNumero(
+                resumen?.comunidadesNuevasEsteMes ?? 0,
+              )}{" "}
+              nuevas este mes
             </small>
           </div>
-        </article>
 
-        <article className={styles.kpiCard}>
-          <div className={`${styles.kpiIcon} ${styles.kpiGreen}`}>
+          <ArrowRight
+            className={styles.kpiArrow}
+            size={19}
+          />
+        </button>
+
+        <button
+          type="button"
+          className={styles.kpiCard}
+          onClick={() =>
+            navigate("/fondos?estado=activos")
+          }
+          aria-label="Ver fondos activos"
+        >
+          <div
+            className={`${styles.kpiIcon} ${styles.kpiGreen}`}
+          >
             <WalletCards size={21} />
           </div>
 
           <div className={styles.kpiContent}>
             <span>Fondos activos</span>
-            <strong>{formatoNumero(resumen?.fondosActivos ?? 0)}</strong>
+
+            <strong>
+              {formatoNumero(
+                resumen?.fondosActivos ?? 0,
+              )}
+            </strong>
 
             <small>
               <CheckCircle2 size={14} />
+
               Disponibles para registro
             </small>
           </div>
-        </article>
 
-        <article className={styles.kpiCard}>
-          <div className={`${styles.kpiIcon} ${styles.kpiOrange}`}>
+          <ArrowRight
+            className={styles.kpiArrow}
+            size={19}
+          />
+        </button>
+
+        <button
+          type="button"
+          className={styles.kpiCard}
+          onClick={() =>
+            irARegistroApoyos("pendientes")
+          }
+          aria-label="Ver apoyos pendientes por validar"
+        >
+          <div
+            className={`${styles.kpiIcon} ${styles.kpiOrange}`}
+          >
             <Clock3 size={21} />
           </div>
 
           <div className={styles.kpiContent}>
             <span>Pendientes por validar</span>
-            <strong>{formatoNumero(resumen?.pendientesValidar ?? 0)}</strong>
+
+            <strong>
+              {formatoNumero(
+                resumen?.pendientesValidar ?? 0,
+              )}
+            </strong>
 
             <small>
               <FileText size={14} />
+
               Requieren seguimiento
             </small>
           </div>
-        </article>
+
+          <ArrowRight
+            className={styles.kpiArrow}
+            size={19}
+          />
+        </button>
       </section>
 
       <section className={styles.primaryGrid}>
-        <article className={`${styles.card} ${styles.monthlyCard}`}>
+        <article
+          className={`${styles.card} ${styles.monthlyCard}`}
+        >
           <div className={styles.cardHeader}>
             <div>
-              <span className={styles.cardEyebrow}>Comportamiento anual</span>
+              <span className={styles.cardEyebrow}>
+                Comportamiento anual
+              </span>
+
               <h2>Apoyos otorgados por mes</h2>
             </div>
 
-            <span className={styles.cardBadge}>{anioSeleccionado}</span>
+            <span className={styles.cardBadge}>
+              {anioSeleccionado}
+            </span>
           </div>
 
           {apoyosPorMes.length === 0 ? (
             <div className={styles.emptyState}>
               <CalendarDays size={26} />
+
               <strong>Sin apoyos registrados</strong>
-              <span>No hay información disponible para este año.</span>
+
+              <span>
+                No hay información disponible para este año.
+              </span>
             </div>
           ) : (
             <>
               <div className={styles.chartLegend}>
-                {datosGraficaMensual.fondos.map((fondo, index) => (
-                  <span key={fondo}>
-                    <i
-                      style={{
-                        background:
-                          COLORES_FONDOS[index % COLORES_FONDOS.length],
-                      }}
-                    />
-                    {fondo}
-                  </span>
-                ))}
+                {datosGraficaMensual.fondos.map(
+                  (fondo, index) => (
+                    <button
+                      type="button"
+                      key={fondo}
+                      onClick={() => irAFondo(fondo)}
+                      title={`Ver apoyos del fondo ${fondo}`}
+                    >
+                      <i
+                        style={{
+                          background:
+                            COLORES_FONDOS[
+                              index %
+                                COLORES_FONDOS.length
+                            ],
+                        }}
+                      />
+
+                      {fondo}
+                    </button>
+                  ),
+                )}
               </div>
 
               <div className={styles.monthlyChart}>
-                {datosGraficaMensual.meses.map((item) => (
-                  <div className={styles.monthColumn} key={item.mes}>
-                    <div className={styles.barArea}>
-                      <span className={styles.barValue}>
-                        {item.total > 0 ? item.total : ""}
-                      </span>
+                {datosGraficaMensual.meses.map(
+                  (item) => (
+                    <div
+                      className={styles.monthColumn}
+                      key={item.mes}
+                    >
+                      <div className={styles.barArea}>
+                        <span
+                          className={styles.barValue}
+                        >
+                          {item.total > 0
+                            ? item.total
+                            : ""}
+                        </span>
 
-                      <div
-                        className={styles.monthBar}
-                        style={{
-                          height: `${
-                            item.total > 0
-                              ? Math.max(
-                                  (item.total / maximoMensual) * 100,
-                                  7
-                                )
-                              : 2
-                          }%`,
-                        }}
-                        title={`${MESES[item.mes - 1]}: ${item.total} apoyos`}
-                      >
-                        {datosGraficaMensual.fondos.map((fondo, index) => {
-                          const cantidad = item.fondos[fondo] ?? 0;
+                        <div
+                          className={styles.monthBar}
+                          style={{
+                            height: `${
+                              item.total > 0
+                                ? Math.max(
+                                    (item.total /
+                                      maximoMensual) *
+                                      100,
+                                    7,
+                                  )
+                                : 2
+                            }%`,
+                          }}
+                          title={`${
+                            MESES[item.mes - 1]
+                          }: ${item.total} apoyos`}
+                        >
+                          {datosGraficaMensual.fondos.map(
+                            (fondo, index) => {
+                              const cantidad =
+                                item.fondos[fondo] ?? 0;
 
-                          if (cantidad <= 0 || item.total <= 0) {
-                            return null;
-                          }
+                              if (
+                                cantidad <= 0 ||
+                                item.total <= 0
+                              ) {
+                                return null;
+                              }
 
-                          return (
-                            <span
-                              key={fondo}
-                              style={{
-                                height: `${(cantidad / item.total) * 100}%`,
-                                background:
-                                  COLORES_FONDOS[
-                                    index % COLORES_FONDOS.length
-                                  ],
-                              }}
-                              title={`${fondo}: ${cantidad}`}
-                            />
-                          );
-                        })}
+                              return (
+                                <span
+                                  key={fondo}
+                                  style={{
+                                    height: `${
+                                      (cantidad /
+                                        item.total) *
+                                      100
+                                    }%`,
+                                    background:
+                                      COLORES_FONDOS[
+                                        index %
+                                          COLORES_FONDOS.length
+                                      ],
+                                  }}
+                                  title={`${fondo}: ${cantidad}`}
+                                />
+                              );
+                            },
+                          )}
+                        </div>
                       </div>
-                    </div>
 
-                    <span className={styles.monthLabel}>
-                      {MESES[item.mes - 1]}
-                    </span>
-                  </div>
-                ))}
+                      <span
+                        className={styles.monthLabel}
+                      >
+                        {MESES[item.mes - 1]}
+                      </span>
+                    </div>
+                  ),
+                )}
               </div>
             </>
           )}
         </article>
 
-        <article className={`${styles.card} ${styles.distributionCard}`}>
+        <article
+          className={`${styles.card} ${styles.distributionCard}`}
+        >
           <div className={styles.cardHeader}>
             <div>
-              <span className={styles.cardEyebrow}>Distribución general</span>
+              <span className={styles.cardEyebrow}>
+                Distribución general
+              </span>
+
               <h2>Apoyos por fondo</h2>
             </div>
 
@@ -537,49 +754,85 @@ export default function DashboardPage() {
           {distribucion.length === 0 ? (
             <div className={styles.emptyState}>
               <WalletCards size={26} />
-              <strong>Sin distribución disponible</strong>
-              <span>Todavía no existen apoyos asociados a fondos.</span>
+
+              <strong>
+                Sin distribución disponible
+              </strong>
+
+              <span>
+                Todavía no existen apoyos asociados a
+                fondos.
+              </span>
             </div>
           ) : (
             <div className={styles.donutContent}>
               <div
                 className={styles.donut}
                 style={{
-                  background: crearGradienteDona(distribucion),
+                  background:
+                    crearGradienteDona(distribucion),
                 }}
               >
                 <div className={styles.donutCenter}>
-                  <strong>{formatoNumero(totalDistribucion)}</strong>
+                  <strong>
+                    {formatoNumero(totalDistribucion)}
+                  </strong>
+
                   <span>apoyos</span>
                 </div>
               </div>
 
-              <div className={styles.distributionList}>
+              <div
+                className={styles.distributionList}
+              >
                 {distribucion.map((item, index) => {
                   const porcentaje =
                     totalDistribucion > 0
-                      ? Math.round((item.cantidad / totalDistribucion) * 100)
+                      ? Math.round(
+                          (item.cantidad /
+                            totalDistribucion) *
+                            100,
+                        )
                       : 0;
 
                   return (
-                    <div className={styles.distributionItem} key={item.fondo}>
+                    <button
+                      type="button"
+                      className={
+                        styles.distributionItem
+                      }
+                      key={item.fondo}
+                      onClick={() =>
+                        irAFondo(item.fondo)
+                      }
+                      title={`Ver apoyos del fondo ${item.fondo}`}
+                    >
                       <span
-                        className={styles.colorIndicator}
+                        className={
+                          styles.colorIndicator
+                        }
                         style={{
                           background:
                             COLORES_FONDOS[
-                              index % COLORES_FONDOS.length
+                              index %
+                                COLORES_FONDOS.length
                             ],
                         }}
                       />
 
                       <div>
                         <strong>{item.fondo}</strong>
+
                         <span>
-                          {formatoNumero(item.cantidad)} apoyos · {porcentaje}%
+                          {formatoNumero(
+                            item.cantidad,
+                          )}{" "}
+                          apoyos · {porcentaje}%
                         </span>
                       </div>
-                    </div>
+
+                      <ArrowRight size={15} />
+                    </button>
                   );
                 })}
               </div>
@@ -592,7 +845,10 @@ export default function DashboardPage() {
         <article className={styles.card}>
           <div className={styles.cardHeader}>
             <div>
-              <span className={styles.cardEyebrow}>Inversión acumulada</span>
+              <span className={styles.cardEyebrow}>
+                Inversión acumulada
+              </span>
+
               <h2>Monto por comunidad</h2>
             </div>
 
@@ -602,41 +858,86 @@ export default function DashboardPage() {
           {montosPorComunidad.length === 0 ? (
             <div className={styles.emptyState}>
               <Building2 size={26} />
+
               <strong>Sin montos disponibles</strong>
-              <span>No existen datos de inversión por comunidad.</span>
+
+              <span>
+                No existen datos de inversión por
+                comunidad.
+              </span>
             </div>
           ) : (
             <div className={styles.rankingList}>
-              {montosPorComunidad.slice(0, 5).map((item, index) => (
-                <div className={styles.rankingItem} key={item.comunidadId}>
-                  <span className={styles.rankingNumber}>{index + 1}</span>
+              {montosPorComunidad
+                .slice(0, 5)
+                .map((item, index) => (
+                  <button
+                    type="button"
+                    className={styles.rankingItem}
+                    key={item.comunidadId}
+                    onClick={() =>
+                      irAComunidad(item.comunidad)
+                    }
+                    title={`Ver apoyos de ${item.comunidad}`}
+                  >
+                    <span
+                      className={
+                        styles.rankingNumber
+                      }
+                    >
+                      {index + 1}
+                    </span>
 
-                  <div className={styles.rankingData}>
-                    <div className={styles.rankingHeader}>
-                      <div>
-                        <strong>{item.comunidad}</strong>
-                        <span>
-                          {formatoNumero(item.totalApoyos)} apoyos
-                          {item.delegado ? ` · ${item.delegado}` : ""}
-                        </span>
+                    <div
+                      className={styles.rankingData}
+                    >
+                      <div
+                        className={
+                          styles.rankingHeader
+                        }
+                      >
+                        <div>
+                          <strong>
+                            {item.comunidad}
+                          </strong>
+
+                          <span>
+                            {formatoNumero(
+                              item.totalApoyos,
+                            )}{" "}
+                            apoyos
+                            {item.delegado
+                              ? ` · ${item.delegado}`
+                              : ""}
+                          </span>
+                        </div>
+
+                        <b>
+                          {formatoMoneda(
+                            item.montoTotal,
+                          )}
+                        </b>
                       </div>
 
-                      <b>{formatoMoneda(item.montoTotal)}</b>
+                      <div
+                        className={
+                          styles.progressTrack
+                        }
+                      >
+                        <span
+                          style={{
+                            width: `${Math.max(
+                              (item.montoTotal /
+                                maximoMontoComunidad) *
+                                100,
+                              3,
+                            )}%`,
+                          }}
+                        />
+                      </div>
                     </div>
-
-                    <div className={styles.progressTrack}>
-                      <span
-                        style={{
-                          width: `${Math.max(
-                            (item.montoTotal / maximoMontoComunidad) * 100,
-                            3
-                          )}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  </button>
+                ))}
             </div>
           )}
         </article>
@@ -647,7 +948,10 @@ export default function DashboardPage() {
               <span className={styles.cardEyebrow}>
                 Comunidades beneficiadas
               </span>
-              <h2>Más apoyos en {anioSeleccionado}</h2>
+
+              <h2>
+                Más apoyos en {anioSeleccionado}
+              </h2>
             </div>
 
             <MapPin size={21} />
@@ -656,37 +960,77 @@ export default function DashboardPage() {
           {!topComunidades?.topComunidades.length ? (
             <div className={styles.emptyState}>
               <UsersRound size={26} />
-              <strong>Sin ranking disponible</strong>
-              <span>No hay comunidades registradas para este periodo.</span>
+
+              <strong>
+                Sin ranking disponible
+              </strong>
+
+              <span>
+                No hay comunidades registradas para este
+                periodo.
+              </span>
             </div>
           ) : (
             <div className={styles.rankingList}>
-              {topComunidades.topComunidades.map((item, index) => (
-                <div
-                  className={styles.rankingItem}
-                  key={`${item.comunidad}-${index}`}
-                >
-                  <span className={styles.rankingNumber}>{index + 1}</span>
+              {topComunidades.topComunidades.map(
+                (item, index) => (
+                  <button
+                    type="button"
+                    className={styles.rankingItem}
+                    key={`${item.comunidad}-${index}`}
+                    onClick={() =>
+                      irAComunidad(item.comunidad)
+                    }
+                    title={`Ver apoyos de ${item.comunidad}`}
+                  >
+                    <span
+                      className={
+                        styles.rankingNumber
+                      }
+                    >
+                      {index + 1}
+                    </span>
 
-                  <div className={styles.rankingData}>
-                    <div className={styles.rankingHeader}>
-                      <strong>{item.comunidad}</strong>
-                      <b>{formatoNumero(item.totalApoyos)} apoyos</b>
-                    </div>
+                    <div
+                      className={styles.rankingData}
+                    >
+                      <div
+                        className={
+                          styles.rankingHeader
+                        }
+                      >
+                        <strong>
+                          {item.comunidad}
+                        </strong>
 
-                    <div className={styles.progressTrack}>
-                      <span
-                        style={{
-                          width: `${Math.max(
-                            (item.totalApoyos / maximoTopComunidades) * 100,
-                            3
-                          )}%`,
-                        }}
-                      />
+                        <b>
+                          {formatoNumero(
+                            item.totalApoyos,
+                          )}{" "}
+                          apoyos
+                        </b>
+                      </div>
+
+                      <div
+                        className={
+                          styles.progressTrack
+                        }
+                      >
+                        <span
+                          style={{
+                            width: `${Math.max(
+                              (item.totalApoyos /
+                                maximoTopComunidades) *
+                                100,
+                              3,
+                            )}%`,
+                          }}
+                        />
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                  </button>
+                ),
+              )}
             </div>
           )}
         </article>
@@ -694,7 +1038,10 @@ export default function DashboardPage() {
         <article className={styles.card}>
           <div className={styles.cardHeader}>
             <div>
-              <span className={styles.cardEyebrow}>Seguimiento global</span>
+              <span className={styles.cardEyebrow}>
+                Seguimiento global
+              </span>
+
               <h2>Estado de solicitudes</h2>
             </div>
 
@@ -702,63 +1049,134 @@ export default function DashboardPage() {
           </div>
 
           <div className={styles.statusSummary}>
-            <div className={styles.statusSummaryTotal}>
-              <strong>{formatoNumero(estadosTotal)}</strong>
-              <span>solicitudes contabilizadas</span>
-            </div>
+            <button
+              type="button"
+              className={styles.statusSummaryTotal}
+              onClick={() =>
+                irARegistroApoyos("todos")
+              }
+              title="Ver todas las solicitudes"
+            >
+              <strong>
+                {formatoNumero(estadosTotal)}
+              </strong>
 
-            <div className={styles.statusRow}>
+              <span>
+                solicitudes contabilizadas
+              </span>
+            </button>
+
+            <button
+              type="button"
+              className={styles.statusRow}
+              onClick={() =>
+                irARegistroApoyos("pendientes")
+              }
+              title="Ver solicitudes pendientes"
+            >
               <div>
-                <span className={styles.pendingDot} />
+                <span
+                  className={styles.pendingDot}
+                />
+
                 <p>
                   <strong>Pendientes</strong>
-                  <small>En espera de revisión</small>
+
+                  <small>
+                    En espera de revisión
+                  </small>
                 </p>
               </div>
 
-              <b>{formatoNumero(topComunidades?.pendientes ?? 0)}</b>
-            </div>
+              <b>
+                {formatoNumero(
+                  topComunidades?.pendientes ?? 0,
+                )}
+              </b>
+            </button>
 
-            <div className={styles.statusRow}>
+            <button
+              type="button"
+              className={styles.statusRow}
+              onClick={() =>
+                irARegistroApoyos("validados")
+              }
+              title="Ver solicitudes validadas"
+            >
               <div>
-                <span className={styles.validatedDot} />
+                <span
+                  className={styles.validatedDot}
+                />
+
                 <p>
                   <strong>Validados</strong>
-                  <small>Información verificada</small>
+
+                  <small>
+                    Información verificada
+                  </small>
                 </p>
               </div>
 
-              <b>{formatoNumero(topComunidades?.validados ?? 0)}</b>
-            </div>
+              <b>
+                {formatoNumero(
+                  topComunidades?.validados ?? 0,
+                )}
+              </b>
+            </button>
 
-            <div className={styles.statusRow}>
+            <button
+              type="button"
+              className={styles.statusRow}
+              onClick={() =>
+                irARegistroApoyos("aprobados")
+              }
+              title="Ver solicitudes aprobadas"
+            >
               <div>
-                <span className={styles.approvedDot} />
+                <span
+                  className={styles.approvedDot}
+                />
+
                 <p>
                   <strong>Aprobados</strong>
-                  <small>Apoyos autorizados</small>
+
+                  <small>
+                    Apoyos autorizados
+                  </small>
                 </p>
               </div>
 
-              <b>{formatoNumero(topComunidades?.aprobados ?? 0)}</b>
-            </div>
+              <b>
+                {formatoNumero(
+                  topComunidades?.aprobados ?? 0,
+                )}
+              </b>
+            </button>
           </div>
         </article>
       </section>
 
-      <section className={`${styles.card} ${styles.recentCard}`}>
+      <section
+        className={`${styles.card} ${styles.recentCard}`}
+      >
         <div className={styles.cardHeader}>
           <div>
-            <span className={styles.cardEyebrow}>Actividad reciente</span>
+            <span className={styles.cardEyebrow}>
+              Actividad reciente
+            </span>
+
             <h2>Últimos apoyos registrados</h2>
           </div>
 
           <button
             type="button"
             className={styles.linkButton}
-            onClick={() => navigate("/apoyos/registro")}
+            onClick={() =>
+              irARegistroApoyos("todos")
+            }
           >
             Ver todos
+
             <ArrowRight size={16} />
           </button>
         </div>
@@ -766,8 +1184,13 @@ export default function DashboardPage() {
         {recientes.length === 0 ? (
           <div className={styles.emptyState}>
             <HandHeart size={26} />
+
             <strong>No hay apoyos recientes</strong>
-            <span>Los registros nuevos aparecerán en esta sección.</span>
+
+            <span>
+              Los registros nuevos aparecerán en esta
+              sección.
+            </span>
           </div>
         ) : (
           <div className={styles.tableWrapper}>
@@ -786,22 +1209,35 @@ export default function DashboardPage() {
                 {recientes.map((apoyo) => (
                   <tr key={apoyo.id}>
                     <td>
-                      <div className={styles.communityCell}>
+                      <div
+                        className={
+                          styles.communityCell
+                        }
+                      >
                         <span>
                           <MapPin size={16} />
                         </span>
 
-                        <strong>{apoyo.comunidad || "Sin comunidad"}</strong>
+                        <strong>
+                          {apoyo.comunidad ||
+                            "Sin comunidad"}
+                        </strong>
                       </div>
                     </td>
 
-                    <td>{apoyo.tipoApoyo || "Sin especificar"}</td>
-                    <td>{formatoFecha(apoyo.fecha)}</td>
+                    <td>
+                      {apoyo.tipoApoyo ||
+                        "Sin especificar"}
+                    </td>
+
+                    <td>
+                      {formatoFecha(apoyo.fecha)}
+                    </td>
 
                     <td>
                       <span
                         className={`${styles.statusBadge} ${obtenerClaseEstado(
-                          apoyo.estado
+                          apoyo.estado,
                         )}`}
                       >
                         {apoyo.estado || "Pendiente"}
@@ -813,9 +1249,14 @@ export default function DashboardPage() {
                         type="button"
                         className={styles.rowButton}
                         onClick={() =>
-                          navigate(`/apoyos/registro?detalle=${apoyo.id}`)
+                          navigate(
+                            `/apoyos/registro?detalle=${apoyo.id}`,
+                          )
                         }
                         title="Ver apoyo"
+                        aria-label={`Ver detalle del apoyo ${
+                          apoyo.tipoApoyo || ""
+                        }`}
                       >
                         <ArrowRight size={17} />
                       </button>

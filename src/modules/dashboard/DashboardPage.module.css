@@ -271,6 +271,10 @@
    KPIS
 ========================================================= */
 
+/* =========================================================
+   KPIS
+========================================================= */
+
 .kpiGrid {
   width: 100%;
   min-width: 0;
@@ -281,25 +285,68 @@
 }
 
 .kpiCard {
+  position: relative;
+
+  width: 100%;
   min-width: 0;
+
   display: flex;
-  align-items: flex-start;
-  gap: 13px;
-  padding: 17px;
+  align-items: center;
+  gap: 14px;
+
+  padding: 18px;
+
   overflow: hidden;
+
   border: 1px solid var(--border);
   border-radius: 15px;
+
   background: var(--surface);
-  box-shadow: 0 5px 18px rgba(57, 23, 34, 0.035);
+  box-shadow: 0 6px 18px rgba(57, 23, 34, 0.04);
+
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.kpiCard:hover {
+  transform: translateY(-5px);
+  border-color: rgba(75, 0, 22, 0.2);
+  background: #fffdfd;
+  box-shadow: 0 16px 32px rgba(75, 0, 22, 0.12);
+}
+
+.kpiCard:active {
+  transform: scale(0.98);
+}
+
+.kpiCard:focus-visible {
+  outline: 3px solid rgba(182, 138, 42, 0.35);
+  outline-offset: 3px;
 }
 
 .kpiIcon {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
+
   display: grid;
-  flex: 0 0 auto;
   place-items: center;
+
+  flex-shrink: 0;
+
   border-radius: 12px;
+
+  transition: transform 0.25s ease;
+}
+
+.kpiCard:hover .kpiIcon {
+  transform: scale(1.08);
 }
 
 .kpiWine {
@@ -324,8 +371,9 @@
 
 .kpiContent {
   min-width: 0;
-  display: flex;
   flex: 1;
+
+  display: flex;
   flex-direction: column;
 }
 
@@ -340,26 +388,42 @@
 
 .kpiContent > strong {
   margin: 3px 0 6px;
-  overflow: hidden;
+
   color: var(--text);
-  font-size: clamp(1.4rem, 2vw, 1.7rem);
+
+  font-size: clamp(1.45rem, 2vw, 1.8rem);
+
   line-height: 1;
   letter-spacing: -0.04em;
-  text-overflow: ellipsis;
 }
 
 .kpiContent small {
-  min-width: 0;
   display: flex;
   align-items: center;
   gap: 5px;
+
   color: #75696d;
+
   font-size: 0.7rem;
-  line-height: 1.35;
 }
 
 .kpiContent small svg {
-  flex: 0 0 auto;
+  flex-shrink: 0;
+}
+
+.kpiArrow {
+  flex-shrink: 0;
+
+  color: #aa9ca0;
+
+  transition:
+    transform 0.25s ease,
+    color 0.25s ease;
+}
+
+.kpiCard:hover .kpiArrow {
+  color: var(--vino);
+  transform: translateX(5px);
 }
 
 /* =========================================================
@@ -1223,8 +1287,8 @@
   }
 
   .kpiCard {
+    padding: 15px;
     align-items: center;
-    padding: 14px;
   }
 
   .primaryGrid,
@@ -1299,8 +1363,11 @@
 
   .kpiCard {
     gap: 11px;
-    padding: 13px;
-    border-radius: 13px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+  .kpiArrow {
+    display: none;
   }
 
   .kpiIcon {

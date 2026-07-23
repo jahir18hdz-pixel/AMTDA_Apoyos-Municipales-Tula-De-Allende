@@ -1,13 +1,17 @@
 import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
+
 import Splash from "@/modules/auth/pages/Splash";
 import Login from "@/modules/auth/pages/Login";
 import ActivarCuentaPage from "@/modules/verificarCorreo/ActivarCuentaPage";
+
 import DashboardPage from "@/modules/dashboard/DashboardPage";
 import RegistroApoyoPage from "@/modules/apoyos/registro/RegistroApoyoPage";
 import ComunidadesPage from "@/modules/comunidades/ComunidadesPage";
 import FondosPage from "@/modules/fondos/FondosPage";
+import ReportesPage from "@/modules/reportes/ReportesPage";
+
 import RolesPage from "@/modules/administracion/roles/RolesPage";
 import PermisosPage from "@/modules/administracion/permisos/PermisosPage";
 import UsuariosPage from "@/modules/administracion/usuarios/UsuariosPage";
@@ -49,7 +53,6 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      
       {
         path: "comunidades",
         element: (
@@ -63,6 +66,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute permission="fondos.view">
             <FondosPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "reportes",
+        element: (
+          <ProtectedRoute permission="reportes.view">
+            <ReportesPage />
           </ProtectedRoute>
         ),
       },

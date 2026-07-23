@@ -1,3 +1,4 @@
+
 :root {
   --vino: #4b0016;
   --vino-l: #6b0020;
@@ -9,6 +10,10 @@
   --border-2: rgba(75, 0, 22, 0.2);
   --text: #1a0008;
   --muted: #9e7a84;
+  --success: #15803d;
+  --success-bg: #ecfdf3;
+  --danger: #b42318;
+  --danger-bg: #fff1f0;
 }
 
 .page {
@@ -29,10 +34,14 @@
   overflow: hidden;
 }
 
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
 .toolbar {
   flex: 0 0 auto;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
 }
@@ -44,12 +53,14 @@
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  background: white;
-  border-radius: 10px;
   padding: 0 12px;
+  background: white;
   border: 1px solid var(--border-2);
+  border-radius: 10px;
   color: var(--muted);
-  transition: all 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .searchBox:focus-within {
@@ -58,17 +69,19 @@
 }
 
 .searchBox svg {
-  color: var(--muted);
   flex-shrink: 0;
+  color: var(--muted);
 }
 
 .searchBox input {
   width: 100%;
+  min-width: 0;
   border: none;
   outline: none;
   background: transparent;
-  font-size: 13px;
   color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
 }
 
 .searchBox input::placeholder {
@@ -90,11 +103,17 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
   white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .primaryButton {
@@ -116,11 +135,15 @@
 }
 
 .secondaryButton:hover {
-  background: var(--surface);
-  border-color: var(--vino);
-  color: var(--vino);
   transform: translateY(-1px);
+  border-color: var(--vino);
+  background: var(--surface);
+  color: var(--vino);
 }
+
+/* =========================================================
+   TABLA
+========================================================= */
 
 .tableWrapper {
   flex: 1 1 auto;
@@ -135,8 +158,8 @@
 }
 
 .tableWrapper::-webkit-scrollbar {
-  width: 3px;
-  height: 3px;
+  width: 5px;
+  height: 5px;
 }
 
 .tableWrapper::-webkit-scrollbar-track {
@@ -144,7 +167,7 @@
 }
 
 .tableWrapper::-webkit-scrollbar-thumb {
-  background: var(--vino);
+  background: rgba(75, 0, 22, 0.6);
   border-radius: 999px;
 }
 
@@ -184,10 +207,15 @@
   vertical-align: middle;
   font-size: 13px;
   white-space: nowrap;
+  transition: background 0.18s ease;
 }
 
 .table tbody tr:hover td {
   background: var(--vino-f);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .table td strong {
@@ -199,10 +227,10 @@
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  background: var(--vino-f);
-  color: var(--vino);
   padding: 4px 10px;
   border-radius: 999px;
+  background: var(--vino-f);
+  color: var(--vino);
   font-size: 11.5px;
   font-weight: 600;
 }
@@ -231,23 +259,23 @@
 }
 
 .statusActive {
-  color: #065f46;
   background: #d1fae5;
+  color: #065f46;
 }
 
 .statusInactive {
-  color: #92400e;
   background: #fef3c7;
+  color: #92400e;
 }
 
 .statusVerified {
-  color: #15803d;
   background: #e8f8ee;
+  color: #15803d;
 }
 
 .statusPending {
-  color: #b45309;
   background: #fff7e6;
+  color: #b45309;
 }
 
 .statusActive::before,
@@ -267,17 +295,23 @@
 .actions button {
   width: 32px;
   height: 32px;
+  padding: 0;
   border: 1px solid transparent;
   border-radius: 9px;
-  cursor: pointer;
-  transition: all 0.18s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .actions button:hover {
   transform: translateY(-1px);
+  filter: brightness(0.97);
 }
 
 .actions button:nth-child(1) {
@@ -290,39 +324,49 @@
   color: var(--vino);
 }
 
+/* =========================================================
+   SWITCH
+========================================================= */
+
 .statusSwitch {
   position: relative;
   width: 44px;
   height: 24px;
   display: inline-flex;
-  cursor: pointer;
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 .statusSwitch input {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .statusSwitch span {
+  position: relative;
   width: 100%;
   height: 100%;
   border-radius: 999px;
   background: #d294a7;
-  position: relative;
-  transition: all 0.2s ease;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .statusSwitch span::before {
   content: "";
   position: absolute;
-  width: 18px;
-  height: 18px;
   top: 3px;
   left: 3px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: white;
   box-shadow: 0 2px 6px rgba(26, 0, 8, 0.2);
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
 .statusSwitch input:checked + span {
@@ -332,6 +376,14 @@
 .statusSwitch input:checked + span::before {
   transform: translateX(20px);
 }
+
+.statusSwitch input:focus-visible + span {
+  box-shadow: 0 0 0 3px rgba(75, 0, 22, 0.18);
+}
+
+/* =========================================================
+   ESTADO VACÍO Y PAGINACIÓN
+========================================================= */
 
 .empty {
   padding: 40px 24px !important;
@@ -351,18 +403,23 @@
 .pagination button {
   height: 36px;
   padding: 0 14px;
-  border-radius: 10px;
   border: 1px solid var(--border-2);
+  border-radius: 10px;
   background: white;
   color: var(--text);
+  font-family: inherit;
   font-weight: 600;
   cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .pagination button:hover:not(:disabled) {
+  border-color: var(--vino);
   background: var(--surface);
   color: var(--vino);
-  border-color: var(--vino);
 }
 
 .pagination button:disabled {
@@ -376,26 +433,33 @@
   font-weight: 600;
 }
 
+/* =========================================================
+   MODAL
+========================================================= */
+
 .modalOverlay {
   position: fixed;
   inset: 0;
   z-index: 2000;
-  background: rgba(26, 0, 8, 0.55);
+  padding: 20px;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  overflow: hidden;
+  background: rgba(26, 0, 8, 0.58);
+  backdrop-filter: blur(3px);
 }
 
 .modal {
   width: min(620px, 95vw);
-  max-height: 90vh;
-  background: white;
-  border-radius: 16px;
-  overflow: hidden auto;
+  max-height: min(90dvh, 780px);
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
   box-shadow: 0 24px 60px rgba(26, 0, 8, 0.25);
   animation: modalPop 0.22s ease;
 }
@@ -413,12 +477,13 @@
 }
 
 .modalHeader {
+  flex: 0 0 auto;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 14px;
   align-items: flex-start;
-  background: linear-gradient(135deg, var(--vino), #6a0823);
   padding: 20px 24px;
+  background: linear-gradient(135deg, var(--vino), #6a0823);
 }
 
 .modalHeader h2 {
@@ -431,9 +496,9 @@
 
 .modalHeader p {
   margin: 3px 0 0;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.78);
   font-size: 12px;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .modalHeader strong {
@@ -443,54 +508,275 @@
 .iconButton {
   width: 30px;
   height: 30px;
+  padding: 0;
   border: none;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  cursor: pointer;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    opacity 0.2s ease;
 }
 
-.iconButton:hover {
+.iconButton:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.25);
 }
 
+.iconButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .modalBody {
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 20px 24px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(75, 0, 22, 0.55) transparent;
+}
+
+.modalBody::-webkit-scrollbar {
+  width: 5px;
+}
+
+.modalBody::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modalBody::-webkit-scrollbar-thumb {
+  background: rgba(75, 0, 22, 0.55);
+  border-radius: 999px;
 }
 
 .modalBody label {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin-bottom: 14px;
-  font-weight: 500;
-  font-size: 12px;
+  gap: 6px;
+  margin-bottom: 16px;
   color: #5c3340;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.modalBody label:last-child {
+  margin-bottom: 0;
 }
 
 .modalBody input,
 .modalBody select {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  padding: 0 12px;
   border: 1px solid var(--border-2);
   border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 13px;
-  font-family: inherit;
   outline: none;
-  transition: all 0.2s ease;
   background: white;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.modalBody input::placeholder {
+  color: #b39ba3;
 }
 
 .modalBody input:focus,
 .modalBody select:focus {
   border-color: var(--vino);
-  box-shadow: 0 0 0 3px rgba(75, 0, 22, 0.06);
+  box-shadow: 0 0 0 3px rgba(75, 0, 22, 0.07);
 }
 
+.modalBody input:disabled,
+.modalBody select:disabled {
+  background: #f4f1f2;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   VALIDACIONES
+========================================================= */
+
+.fieldHint {
+  display: block;
+  margin-top: 1px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.fieldError {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin-top: 1px;
+  color: var(--danger);
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.fieldError::before {
+  content: "!";
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.fieldSuccess {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 1px;
+  color: var(--success);
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.fieldSuccess svg {
+  flex-shrink: 0;
+}
+
+.modalBody .inputError,
+.modalBody .inputError:focus {
+  border-color: #d92d20;
+  background: #fffafa;
+  box-shadow: 0 0 0 3px rgba(217, 45, 32, 0.08);
+}
+
+/* =========================================================
+   CONTRASEÑA
+========================================================= */
+
+.passwordInput {
+  position: relative;
+  width: 100%;
+}
+
+.passwordInput input {
+  padding-right: 44px;
+}
+
+.passwordInput button {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  background: transparent;
+  color: var(--muted);
+  font-size: 16px;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.passwordInput button:hover {
+  background: var(--vino-f);
+  color: var(--vino);
+}
+
+.passwordInput button:focus-visible {
+  outline: 2px solid rgba(75, 0, 22, 0.25);
+  outline-offset: 1px;
+}
+
+.passwordRequirements {
+  margin-top: 5px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface);
+}
+
+.passwordRequirements p {
+  margin: 0 0 8px;
+  color: #5c3340;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.passwordRequirements ul {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 12px;
+  list-style: none;
+}
+
+.passwordRequirements li {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+  transition: color 0.2s ease;
+}
+
+.passwordRequirements li svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  padding: 2px;
+  border-radius: 50%;
+  background: #e6dde0;
+  color: #a28790;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.passwordRequirements .ruleValid {
+  color: var(--success);
+}
+
+.passwordRequirements .ruleValid svg {
+  background: #d1fae5;
+  color: var(--success);
+}
+
+/* =========================================================
+   ACCIONES DEL MODAL
+========================================================= */
+
 .modalActions {
+  flex: 0 0 auto;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
@@ -504,10 +790,16 @@
   min-width: 140px;
   padding: 0 18px;
   border-radius: 10px;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.22s ease;
+  transition:
+    transform 0.22s ease,
+    background 0.22s ease,
+    border-color 0.22s ease,
+    color 0.22s ease,
+    opacity 0.22s ease;
 }
 
 .modalActions button:first-child {
@@ -516,11 +808,11 @@
   color: var(--text);
 }
 
-.modalActions button:first-child:hover {
-  background: var(--vino-f);
-  border-color: var(--vino);
-  color: var(--vino);
+.modalActions button:first-child:hover:not(:disabled) {
   transform: translateY(-1px);
+  border-color: var(--vino);
+  background: var(--vino-f);
+  color: var(--vino);
 }
 
 .modalActions button:last-child {
@@ -530,10 +822,21 @@
   box-shadow: 0 10px 22px rgba(75, 0, 22, 0.18);
 }
 
-.modalActions button:last-child:hover {
-  background: linear-gradient(135deg, #5d001c, #7c0b2d);
+.modalActions button:last-child:hover:not(:disabled) {
   transform: translateY(-1px);
+  background: linear-gradient(135deg, #5d001c, #7c0b2d);
 }
+
+.modalActions button:disabled {
+  opacity: 0.5;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
 
 @media (max-width: 900px) {
   .page {
@@ -552,7 +855,7 @@
   .toolbarActions {
     width: 100%;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .toolbarActions button {
@@ -574,6 +877,13 @@
 
   .modal {
     width: min(620px, 100%);
+    max-height: 92dvh;
+  }
+}
+
+@media (max-width: 600px) {
+  .passwordRequirements ul {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -597,6 +907,11 @@
     gap: 8px;
   }
 
+  .pagination span {
+    order: -1;
+    text-align: center;
+  }
+
   .pagination button {
     width: 100%;
   }
@@ -608,7 +923,7 @@
 
   .modal {
     width: 100%;
-    max-height: 95vh;
+    max-height: 96dvh;
     border-radius: 16px 16px 0 0;
     animation: modalSlideUp 0.24s ease;
   }
@@ -642,5 +957,22 @@
   .modalActions button {
     width: 100%;
     min-width: 0;
+  }
+
+  .passwordRequirements {
+    padding: 11px 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal {
+    animation: none;
+  }
+
+  .primaryButton,
+  .secondaryButton,
+  .actions button,
+  .modalActions button {
+    transition: none;
   }
 }
