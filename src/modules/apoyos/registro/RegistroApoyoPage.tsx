@@ -57,6 +57,9 @@ function crearDocumentoInicial(): DocumentoApoyoForm {
     descripcion: "",
     tipoDocumento: "factura",
     esExistente: false,
+    facturado: false,
+    metodoPago: "",
+    fechaFacturado: "",
   };
 }
 
@@ -174,7 +177,7 @@ export default function RegistroApoyoPage() {
         pageNumber,
         PAGE_SIZE,
       );
-      
+
 
       setRegistros(data.items ?? []);
       setTotalCount(data.totalRecords ?? 0);
@@ -503,6 +506,14 @@ export default function RegistroApoyoPage() {
             descripcion: documento.descripcion ?? "",
 
             tipoDocumento: normalizarTipoDocumento(documento.tipoDocumento),
+
+            facturado: documento.facturado ?? false,
+
+            metodoPago: documento.metodoPago ?? "",
+
+            fechaFacturado: documento.fechaFacturado
+              ? documento.fechaFacturado.slice(0, 10)
+              : "",
           }))
         : [crearDocumentoInicial()];
 
@@ -681,6 +692,18 @@ export default function RegistroApoyoPage() {
 
     if (documentosInvalidos) {
       toast.error("Los montos de los documentos no pueden ser negativos.");
+
+      return;
+    }
+
+    const documentosFacturadosSinFecha = form.documentos.some(
+      (documento) => documento.facturado && !documento.fechaFacturado,
+    );
+
+    if (documentosFacturadosSinFecha) {
+      toast.error(
+        "Los documentos marcados como facturados requieren fecha de facturación.",
+      );
 
       return;
     }
@@ -1256,6 +1279,61 @@ export default function RegistroApoyoPage() {
                           placeholder="Descripción del documento"
                         />
                       </label>
+                    </div>
+
+                    <div className={styles.formGrid}>
+                      <label className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={documento.facturado}
+                          disabled={saving || documento.esExistente}
+                          onChange={(event) =>
+                            actualizarDocumento(
+                              index,
+                              "facturado",
+                              event.target.checked,
+                            )
+                          }
+                        />
+                        Facturado
+                      </label>
+
+                      {documento.facturado && (
+                        <>
+                          <label>
+                            Método de pago
+                            <input
+                              value={documento.metodoPago}
+                              disabled={saving || documento.esExistente}
+                              onChange={(event) =>
+                                actualizarDocumento(
+                                  index,
+                                  "metodoPago",
+                                  event.target.value,
+                                )
+                              }
+                              placeholder="Ej. Transferencia"
+                            />
+                          </label>
+
+                          <label>
+                            Fecha facturado <span>*</span>
+                            <input
+                              type="date"
+                              value={documento.fechaFacturado}
+                              disabled={saving || documento.esExistente}
+                              required={documento.facturado}
+                              onChange={(event) =>
+                                actualizarDocumento(
+                                  index,
+                                  "fechaFacturado",
+                                  event.target.value,
+                                )
+                              }
+                            />
+                          </label>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}

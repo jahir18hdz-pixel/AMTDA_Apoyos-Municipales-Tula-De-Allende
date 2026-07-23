@@ -11,11 +11,7 @@ import type {
 
 const endpoint = "/RegistroApoyo";
 
-function appendIfValue(
-  formData: FormData,
-  key: string,
-  value: string,
-) {
+function appendIfValue(formData: FormData, key: string, value: string) {
   const normalizedValue = value.trim();
 
   if (normalizedValue) {
@@ -29,41 +25,32 @@ function crearFormData(data: CrearRegistroApoyoForm) {
   formData.append("Folio", data.folio.trim());
   formData.append("ApoyoId", data.apoyoId);
   formData.append("ComunidadId", data.comunidadId);
-  formData.append(
-    "EstadoSolicitudId",
-    data.estadoSolicitudId,
-  );
-
+  formData.append("EstadoSolicitudId", data.estadoSolicitudId);
   formData.append(
     "FechaApoyo",
-    new Date(
-      `${data.fechaApoyo}T00:00:00`,
-    ).toISOString(),
+    new Date(`${data.fechaApoyo}T00:00:00`).toISOString(),
   );
-
   formData.append("MontoOtorgado", data.montoOtorgado);
-
-  appendIfValue(
-    formData,
-    "Observaciones",
-    data.observaciones,
-  );
+  appendIfValue(formData, "Observaciones", data.observaciones);
 
   data.documentos.forEach((documento) => {
     if (!documento.archivo) return;
 
     formData.append("Archivos", documento.archivo);
     formData.append("Montos", documento.monto || "0");
+    formData.append("Descripciones", documento.descripcion.trim());
+    formData.append("TiposDocumento", documento.tipoDocumento);
+    formData.append("Facturados", documento.facturado ? "true" : "false");
+    formData.append("MetodosPago", documento.metodoPago.trim());
 
-    formData.append(
-      "Descripciones",
-      documento.descripcion.trim(),
-    );
-
-    formData.append(
-      "TiposDocumento",
-      documento.tipoDocumento,
-    );
+    if (documento.facturado && documento.fechaFacturado) {
+      formData.append(
+        "FechasFacturado",
+        new Date(`${documento.fechaFacturado}T00:00:00`).toISOString(),
+      );
+    } else {
+      formData.append("FechasFacturado", "");
+    }
   });
 
   return formData;
@@ -71,9 +58,7 @@ function crearFormData(data: CrearRegistroApoyoForm) {
 
 export const registroApoyoService = {
   obtenerTodos(pageNumber = 1, pageSize = 10) {
-    return api.get<
-      PaginatedResponse<RegistroApoyoListado>
-    >(endpoint, {
+    return api.get<PaginatedResponse<RegistroApoyoListado>>(endpoint, {
       params: {
         pageNumber,
         pageSize,
@@ -82,38 +67,22 @@ export const registroApoyoService = {
   },
 
   obtenerPorId(id: string) {
-    return api.get<RegistroApoyoPorId>(
-      `${endpoint}/${id}`,
-    );
+    return api.get<RegistroApoyoPorId>(`${endpoint}/${id}`);
   },
 
   obtenerDetalle(id: string) {
-    return api.get<RegistroApoyoDetalle>(
-      `${endpoint}/${id}/detalle`,
-    );
+    return api.get<RegistroApoyoDetalle>(`${endpoint}/${id}/detalle`);
   },
 
   crear(data: CrearRegistroApoyoForm) {
-    return api.post<string>(
-      endpoint,
-      crearFormData(data),
-    );
+    return api.post<string>(endpoint, crearFormData(data));
   },
 
-  actualizar(
-    id: string,
-    data: CrearRegistroApoyoForm,
-  ) {
-    return api.put(
-      `${endpoint}/${id}`,
-      crearFormData(data),
-    );
+  actualizar(id: string, data: CrearRegistroApoyoForm) {
+    return api.put(`${endpoint}/${id}`, crearFormData(data));
   },
 
-  cambiarEstado(
-    id: string,
-    estadoSolicitudId: string,
-  ) {
+  cambiarEstado(id: string, estadoSolicitudId: string) {
     return api.patch(`${endpoint}/${id}/estado`, {
       estadoSolicitudId,
     });
@@ -131,21 +100,12 @@ export const registroApoyoService = {
       formData.append("Archivos", documento.archivo);
       formData.append("Montos", documento.monto || "0");
 
-      formData.append(
-        "Descripciones",
-        documento.descripcion.trim(),
-      );
+      formData.append("Descripciones", documento.descripcion.trim());
 
-      formData.append(
-        "TiposDocumento",
-        documento.tipoDocumento,
-      );
+      formData.append("TiposDocumento", documento.tipoDocumento);
     });
 
-    return api.post(
-      `${endpoint}/${id}/documentos`,
-      formData,
-    );
+    return api.post(`${endpoint}/${id}/documentos`, formData);
   },
 
   eliminar(id: string) {
@@ -155,9 +115,7 @@ export const registroApoyoService = {
 
 export const registroApoyoCatalogosService = {
   obtenerComunidades() {
-    return api.get<
-      PaginatedResponse<CatalogoOption>
-    >("/comunidades", {
+    return api.get<PaginatedResponse<CatalogoOption>>("/comunidades", {
       params: {
         pageNumber: 1,
         pageSize: 100,
@@ -166,9 +124,7 @@ export const registroApoyoCatalogosService = {
   },
 
   obtenerApoyos() {
-    return api.get<
-      PaginatedResponse<CatalogoOption>
-    >("/apoyos/activos", {
+    return api.get<PaginatedResponse<CatalogoOption>>("/apoyos/activos", {
       params: {
         pageNumber: 1,
         pageSize: 100,
@@ -177,8 +133,6 @@ export const registroApoyoCatalogosService = {
   },
 
   obtenerEstadosSolicitud() {
-    return api.get<CatalogoOption[]>(
-      `${endpoint}/estados-solicitud`,
-    );
+    return api.get<CatalogoOption[]>(`${endpoint}/estados-solicitud`);
   },
 };

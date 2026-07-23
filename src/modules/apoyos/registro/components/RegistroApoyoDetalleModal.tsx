@@ -1,6 +1,7 @@
 import {
   FiCalendar,
   FiCheckCircle,
+  FiCreditCard,
   FiDollarSign,
   FiDownload,
   FiEdit2,
@@ -100,6 +101,12 @@ function obtenerTipoDocumento(tipo?: string | null) {
   }
 }
 
+function obtenerClaseFacturado(facturado: boolean) {
+  return facturado
+    ? `${styles.billingBadge} ${styles.billingBadgeBilled}`
+    : `${styles.billingBadge} ${styles.billingBadgeUnbilled}`;
+}
+
 export default function RegistroApoyoDetalleModal({
   open,
   detalle,
@@ -109,35 +116,22 @@ export default function RegistroApoyoDetalleModal({
 }: RegistroApoyoDetalleModalProps) {
   if (!open || !detalle) return null;
 
-  const folio =
-    detalle.folio ||
-    registroListado?.folio ||
-    "Sin folio";
+  const folio = detalle.folio || registroListado?.folio || "Sin folio";
 
   const comunidad =
-    detalle.comunidad ||
-    registroListado?.comunidad ||
-    "No registrada";
+    detalle.comunidad || registroListado?.comunidad || "No registrada";
 
   const delegado =
-    detalle.delegado ||
-    registroListado?.delegado ||
-    "No registrado";
+    detalle.delegado || registroListado?.delegado || "No registrado";
 
   const fechaApoyo =
     detalle.fechaApoyo ||
     detalle.fechaRegistro ||
     registroListado?.fechaRegistro;
 
-  const estadoActual = obtenerEstado(
-    detalle,
-    registroListado,
-  );
+  const estadoActual = obtenerEstado(detalle, registroListado);
 
-  const nombreApoyo = obtenerNombreApoyo(
-    detalle,
-    registroListado,
-  );
+  const nombreApoyo = obtenerNombreApoyo(detalle, registroListado);
 
   const observaciones =
     detalle.observaciones?.trim() ||
@@ -161,17 +155,13 @@ export default function RegistroApoyoDetalleModal({
       <section className={styles.modal}>
         <header className={styles.header}>
           <div className={styles.headerContent}>
-            <span className={styles.eyebrow}>
-              Detalle del apoyo
-            </span>
+            <span className={styles.eyebrow}>Detalle del apoyo</span>
 
-            <h2 id="registro-apoyo-detalle-title">
-              {folio}
-            </h2>
+            <h2 id="registro-apoyo-detalle-title">{folio}</h2>
 
             <p>
-              Consulta la información general, documentos
-              y observaciones del registro.
+              Consulta la información general, documentos y observaciones del
+              registro.
             </p>
           </div>
 
@@ -196,9 +186,7 @@ export default function RegistroApoyoDetalleModal({
               <div>
                 <span>Estado actual</span>
 
-                <strong className={styles.statusBadge}>
-                  {estadoActual}
-                </strong>
+                <strong className={styles.statusBadge}>{estadoActual}</strong>
               </div>
             </article>
 
@@ -226,10 +214,7 @@ export default function RegistroApoyoDetalleModal({
               <div>
                 <h3>Información del apoyo</h3>
 
-                <p>
-                  Datos principales del registro
-                  seleccionado.
-                </p>
+                <p>Datos principales del registro seleccionado.</p>
               </div>
             </div>
 
@@ -285,9 +270,8 @@ export default function RegistroApoyoDetalleModal({
 
                 <div>
                   <span>Fecha del apoyo</span>
-                  <strong>
-                    {mostrarFecha(fechaApoyo)}
-                  </strong>
+
+                  <strong>{mostrarFecha(fechaApoyo)}</strong>
                 </div>
               </article>
 
@@ -300,10 +284,7 @@ export default function RegistroApoyoDetalleModal({
                   <span>Fecha de registro</span>
 
                   <strong>
-                    {mostrarFecha(
-                      detalle.createdAt ||
-                        detalle.fechaRegistro,
-                    )}
+                    {mostrarFecha(detalle.createdAt || detalle.fechaRegistro)}
                   </strong>
                 </div>
               </article>
@@ -316,11 +297,7 @@ export default function RegistroApoyoDetalleModal({
                 <div>
                   <span>Monto otorgado</span>
 
-                  <strong>
-                    {mostrarMonto(
-                      detalle.montoOtorgado,
-                    )}
-                  </strong>
+                  <strong>{mostrarMonto(detalle.montoOtorgado)}</strong>
                 </div>
               </article>
 
@@ -353,16 +330,11 @@ export default function RegistroApoyoDetalleModal({
               <div>
                 <h3>Observaciones</h3>
 
-                <p>
-                  Información adicional asociada al
-                  apoyo.
-                </p>
+                <p>Información adicional asociada al apoyo.</p>
               </div>
             </div>
 
-            <div className={styles.observations}>
-              {observaciones}
-            </div>
+            <div className={styles.observations}>{observaciones}</div>
           </section>
 
           <section className={styles.section}>
@@ -374,15 +346,10 @@ export default function RegistroApoyoDetalleModal({
               <div>
                 <h3>Documentos</h3>
 
-                <p>
-                  Archivos y comprobantes asociados al
-                  registro.
-                </p>
+                <p>Archivos y comprobantes asociados al registro.</p>
               </div>
 
-              <span className={styles.documentsCount}>
-                {documentos.length}
-              </span>
+              <span className={styles.documentsCount}>{documentos.length}</span>
             </div>
 
             {documentos.length === 0 ? (
@@ -391,92 +358,110 @@ export default function RegistroApoyoDetalleModal({
                   <FiFile />
                 </span>
 
-                <strong>
-                  No hay documentos registrados
-                </strong>
+                <strong>No hay documentos registrados</strong>
 
-                <p>
-                  Este apoyo todavía no tiene archivos
-                  asociados.
-                </p>
+                <p>Este apoyo todavía no tiene archivos asociados.</p>
               </div>
             ) : (
               <div className={styles.documentsList}>
-                {documentos.map(
-                  (documento, index) => (
-                    <article
-                      key={documento.id || index}
-                      className={styles.documentItem}
-                    >
-                      <span
-                        className={styles.documentIcon}
-                      >
-                        <FiFileText />
-                      </span>
+                {documentos.map((documento, index) => (
+                  <article
+                    key={documento.id || index}
+                    className={styles.documentItem}
+                  >
+                    <span className={styles.documentIcon}>
+                      <FiFileText />
+                    </span>
 
-                      <div
-                        className={
-                          styles.documentInformation
-                        }
-                      >
-                        <strong>
-                          {documento.nombreArchivo ||
-                            `Documento ${index + 1}`}
-                        </strong>
+                    <div className={styles.documentInformation}>
+                      <strong>
+                        {documento.nombreArchivo || `Documento ${index + 1}`}
+                      </strong>
 
-                        <div
-                          className={
-                            styles.documentMeta
-                          }
-                        >
-                          <span>
-                            {obtenerTipoDocumento(
-                              documento.tipoDocumento,
+                      <div className={styles.documentDetails}>
+                        <span>
+                          <FiFileText />
+
+                          <strong>Tipo de documento:</strong>
+
+                          {obtenerTipoDocumento(documento.tipoDocumento)}
+                        </span>
+
+                        <span>
+                          <FiDollarSign />
+
+                          <strong>Monto:</strong>
+
+                          {mostrarMonto(documento.monto)}
+                        </span>
+
+                        <span>
+                          <FiCheckCircle />
+
+                          <strong>Estado de facturación:</strong>
+
+                          <span
+                            className={obtenerClaseFacturado(
+                              documento.facturado,
                             )}
+                          >
+                            {documento.facturado ? "Facturado" : "No facturado"}
+                          </span>
+                        </span>
+                      </div>
+
+                      {documento.descripcion && (
+                        <div className={styles.documentObservation}>
+                          <FiFileText />
+
+                          <div>
+                            <strong>Observación:</strong>
+
+                            <p>{documento.descripcion}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {documento.facturado && (
+                        <div className={styles.documentBilling}>
+                          <span>
+                            <FiCreditCard />
+
+                            <strong>Método de pago:</strong>
+
+                            {documento.metodoPago?.trim() || "No registrado"}
                           </span>
 
                           <span>
-                            {mostrarMonto(
-                              documento.monto,
-                            )}
+                            <FiCalendar />
+
+                            <strong>Fecha facturado:</strong>
+
+                            {mostrarFecha(documento.fechaFacturado)}
                           </span>
                         </div>
+                      )}
+                    </div>
 
-                        {documento.descripcion && (
-                          <p>
-                            {documento.descripcion}
-                          </p>
-                        )}
-                      </div>
-
-                      <div
-                        className={
-                          styles.documentActions
-                        }
-                      >
-                        {documento.url ? (
-                          <a
-                            href={documento.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            title="Abrir documento"
-                          >
-                            <FiDownload />
-                            <span>Ver archivo</span>
-                          </a>
-                        ) : (
-                          <span
-                            className={
-                              styles.unavailableFile
-                            }
-                          >
-                            Sin archivo
-                          </span>
-                        )}
-                      </div>
-                    </article>
-                  ),
-                )}
+                    <div className={styles.documentActions}>
+                      {documento.url ? (
+                        <a
+                          href={documento.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          title="Abrir documento"
+                        >
+                          <FiDownload />
+                          <span>Ver archivo</span>
+                        </a>
+                      ) : (
+                        <span className={styles.unavailableFile}>
+                          Sin archivo
+                        </span>
+                      )}
+                    </div>
+                  </article>
+                ))}
               </div>
             )}
           </section>

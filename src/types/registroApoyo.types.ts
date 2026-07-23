@@ -26,12 +26,11 @@ export type DocumentoApoyoForm = {
   archivo: File | null;
   monto: string;
   descripcion: string;
-  tipoDocumento:
-    | "imagen"
-    | "factura"
-    | "otro";
+  tipoDocumento: "imagen" | "factura" | "otro";
+  facturado: boolean;
+  metodoPago: string;
+  fechaFacturado: string;
 };
-
 export type CrearRegistroApoyoForm = {
   folio: string;
   apoyoId: string;
@@ -55,6 +54,9 @@ export type RegistroApoyoDocumento = {
   tipoDocumento: string;
   monto: number;
   descripcion?: string | null;
+  facturado: boolean;
+  metodoPago?: string | null;
+  fechaFacturado?: string | null;
 };
 
 export type RegistroApoyoPorId = {

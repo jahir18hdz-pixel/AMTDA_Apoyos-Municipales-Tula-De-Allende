@@ -16,18 +16,23 @@ import RolesPage from "@/modules/administracion/roles/RolesPage";
 import PermisosPage from "@/modules/administracion/permisos/PermisosPage";
 import UsuariosPage from "@/modules/administracion/usuarios/UsuariosPage";
 
+import NotFoundPage from "@/modules/error/NotFoundPage";
+
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <Splash />,
+    errorElement: <NotFoundPage />,
   },
   {
     path: "/login",
     element: <Login />,
+    errorElement: <NotFoundPage />,
   },
   {
     path: "/activar",
     element: <ActivarCuentaPage />,
+    errorElement: <NotFoundPage />,
   },
   {
     path: "/",
@@ -36,6 +41,7 @@ export const router = createBrowserRouter([
         <MainLayout />
       </ProtectedRoute>
     ),
+    errorElement: <NotFoundPage />,
     children: [
       {
         path: "dashboard",
@@ -101,6 +107,18 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+
+      // Ruta comodín (404)
+      {
+        path: "*",
+        element: <NotFoundPage />,
+      },
     ],
+  },
+
+  // Cualquier ruta fuera del árbol principal
+  {
+    path: "*",
+    element: <NotFoundPage />,
   },
 ]);

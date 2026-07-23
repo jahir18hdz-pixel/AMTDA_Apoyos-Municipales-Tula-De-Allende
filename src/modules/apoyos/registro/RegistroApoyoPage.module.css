@@ -940,6 +940,44 @@
   cursor: not-allowed;
 }
 
+/* Fila de facturación (checkbox + método de pago + fecha) dentro de cada documento */
+.documentCard .formGrid + .formGrid {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border-2);
+}
+
+.checkboxLabel {
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start;
+  gap: 9px !important;
+  align-self: end;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border-2);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.checkboxLabel:has(input:checked) {
+  border-color: var(--vino);
+  background: var(--vino-f);
+  color: var(--vino);
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  accent-color: var(--vino);
+  cursor: pointer;
+}
+
 /* =========================
    PIE DEL MODAL
    ========================= */
@@ -1057,6 +1095,10 @@
 
   .formGrid {
     grid-template-columns: 1fr;
+  }
+
+  .checkboxLabel {
+    align-self: stretch;
   }
 
   .documentsHead {
