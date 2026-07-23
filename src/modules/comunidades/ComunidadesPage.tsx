@@ -29,7 +29,7 @@ import type {
 } from "@/types/comunidad.types";
 import { useToast } from "@/components/ui/toast/useToast";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
-import styles from "./componentes/comunidadesPage.module.css";
+import styles from "./componentes/ComunidadesPage.module.css";
 
 const REGISTROS_POR_PAGINA = 10;
 

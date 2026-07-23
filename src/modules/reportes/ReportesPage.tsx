@@ -31,7 +31,7 @@ import type { Comunidad } from "@/types/comunidad.types";
 import { useToast } from "@/components/ui/toast/useToast";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 
-import styles from "./componentes/reportesPage.module.css";
+import styles from "./componentes/ReportesPage.module.css";
 
 type TipoReporte =
   | "resumen-general"
